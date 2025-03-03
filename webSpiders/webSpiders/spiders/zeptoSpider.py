@@ -1,11 +1,10 @@
 import re
-
 import scrapy
 from bs4 import BeautifulSoup
-from scrapy_playwright.page import PageMethod
 
-class DemoSpider(scrapy.Spider):
-    name = "demoSpider"
+
+class ZeptoSpider(scrapy.Spider):
+    name = "zeptoSpider"
     user_agent = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36"
 
     def start_requests(self):
