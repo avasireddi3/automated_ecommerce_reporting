@@ -22,7 +22,7 @@ class DemoSpider(scrapy.Spider):
 
         # with open("test_html.txt","w") as f:
         #     f.write(prettyHTML)
-        for product in products:
+        for rank,product in enumerate(products):
             name = product.findChild("h5",attrs={"class":"font-subtitle text-lg tracking-wider line-clamp-2 !text-base !font-semibold !h-9 !tracking-normal px-1.5"}).text
             quantity = product.findChild("h5",attrs={"class":re.compile("font-subtitle text-lg tracking-wider line-clamp-1 mt-1 !text-sm !font-normal*")}).text
             try:
@@ -37,4 +37,5 @@ class DemoSpider(scrapy.Spider):
             yield {"name":name,
                    "quantity":quantity,
                    "display_price":display_price,
-                   "original_price":original_price}
+                   "original_price":original_price,
+                   "rank":rank}
