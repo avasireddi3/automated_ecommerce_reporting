@@ -12,7 +12,7 @@ BOT_NAME = "webSpiders"
 SPIDER_MODULES = ["webSpiders.spiders"]
 NEWSPIDER_MODULE = "webSpiders.spiders"
 
-
+PLAYWRIGHT_LAUNCH_OPTIONS = {"headless": False}
 DOWNLOAD_HANDLERS = {
         "http": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
         "https": "scrapy_playwright.handler.ScrapyPlaywrightDownloadHandler",
