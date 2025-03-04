@@ -1,4 +1,5 @@
 *.pyc
 .idea/*
 *.xml
-test_html.txt
+test_html*.txt
+*.txt
