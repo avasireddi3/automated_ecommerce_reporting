@@ -35,15 +35,6 @@ class BlinkitSpider(scrapy.Spider):
 
     async def parse(self, response):
         soup = BeautifulSoup(response.text,'lxml')
-        prettyHTML = soup.prettify()
-
-        # data = soup.find("script",string=re.compile("window.grofers*")).text
-        # data = data.split("window.grofers = {};")[1]
-        # data = data.split("{",maxsplit=1)[1]
-        # data = data.split("};",maxsplit=1)[0]
-        # data = dict(data)
-        # data = "{" + data + "}"
-
 
         products = soup.find_all("div",attrs={"class":"Product__UpdatedContentContainer-sc-11dk8zk-7 bekgjj"})
         for product in products:
