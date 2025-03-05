@@ -1,12 +1,13 @@
 import json
-from selenium_driverless import webdriver
 import asyncio
-from rich import print
-from selenium_driverless.scripts.network_interceptor import NetworkInterceptor, InterceptedRequest
 import cloudscraper
+import urllib
+import requests.models
+from selenium_driverless import webdriver
+from selenium_driverless.scripts.network_interceptor import NetworkInterceptor, InterceptedRequest
+from rich import print
 from data_models import Listing
 from helper_functions import try_extract
-
 
 
 async def on_request(data:InterceptedRequest):
@@ -18,7 +19,7 @@ async def on_request(data:InterceptedRequest):
         except KeyError:
             print("no auth header found in request")
 
-async def main():
+async def get_auth():
     options = webdriver.ChromeOptions()
     options.headless = True
     async with webdriver.Chrome(options=options) as driver:
@@ -26,17 +27,25 @@ async def main():
             await driver.get("https://blinkit.com/s/?q=idli%20rava")
             await driver.sleep(2)
 
-if __name__ == '__main__':
-    asyncio.run(main())
+def get_response(query:str)->requests.models.Response:
     scraper = cloudscraper.create_scraper()
     auth["lat"] = "13.0159044"
     auth["lon"] = "77.63786189999999"
-    resp = scraper.get(url = "https://blinkit.com/v6/search/products?start=0&size=20&search_type=7&q=idli%20rava", headers=auth)
-    # resp = scraper.get(url="https://blinkit.com/v6/search/products?start=0&size=20&search_type=7&q=idli%20rava",
-    #                    headers=auth)
-    data = json.loads(resp.text)
-    # with open("blinkit_sample.txt", "w") as f:
-    #     f.write(json.dumps(data, indent=2))
+    params = {
+        "start":"0",
+        "size":"20",
+        "search_type":"7",
+        "q":query
+    }
+    base_url = "https://blinkit.com/v6/search/products"
+    encoded_params = urllib.parse.urlencode(params)
+    complete_url = f"{base_url}?{encoded_params}"
+    resp = scraper.get(url=complete_url,
+                       headers=auth)
+    print(type(resp))
+    return resp
+
+def extract_data(data:dict)->Listing:
     for i,listing in enumerate(data["products"]):
         mrp = try_extract(listing,"mrp",0)
         price = try_extract(listing,"price",0)
@@ -56,7 +65,15 @@ if __name__ == '__main__':
             ad = ad,
             rank = rank
         )
-        print(curr)
+        yield curr
+
+if __name__ == '__main__':
+    asyncio.run(get_auth())
+    resp = get_response("chips")
+    data = json.loads(resp.text)
+    for item in extract_data(data):
+        print(item)
+
 
 
 
