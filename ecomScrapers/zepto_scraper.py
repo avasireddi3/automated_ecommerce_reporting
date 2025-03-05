@@ -1,10 +1,10 @@
 import json
 import orjson
-from selenium_driverless import webdriver
-import asyncio
-from rich import print
-from selenium_driverless.scripts.network_interceptor import NetworkInterceptor, InterceptedRequest
 import urllib3
+import asyncio
+from selenium_driverless import webdriver
+from selenium_driverless.scripts.network_interceptor import NetworkInterceptor, InterceptedRequest
+from rich import print
 from data_models import Listing
 from helper_functions import  try_extract
 
@@ -24,20 +24,17 @@ async def main():
             await driver.get("https://www.zeptonow.com/search?query=idli+rava")
             await driver.sleep(2)
 
-
-if __name__ == '__main__':
-    asyncio.run(main())
+def get_response(query:str):
     auth["storeId"] = "17141f08-6ccd-4d8b-ae18-0bd9ebbb8a40"
-    auth["store_etas"] = """{"17141f08-6ccd-4d8b-ae18-0bd9ebbb8a40":8,"6b1d82f8-b2ea-4e43-ae70-6f6bca1ec77a":17}"""
-    auth["store_id"] ="17141f08-6ccd-4d8b-ae18-0bd9ebbb8a40"
-    auth["store_ids"] ="17141f08-6ccd-4d8b-ae18-0bd9ebbb8a40,6b1d82f8-b2ea-4e43-ae70-6f6bca1ec77a"
-    payload = {"query":"idli rava","pageNumber":0,"userSessionId":auth["session_id"]}
-    payload_str = orjson.dumps(payload)
+    auth["store_etas"] = """{"17141f08-6ccd-4d8b-ae18-0bd9ebbb8a40":0}"""
+    auth["store_id"] = "17141f08-6ccd-4d8b-ae18-0bd9ebbb8a40"
+    auth["store_ids"] = "17141f08-6ccd-4d8b-ae18-0bd9ebbb8a40,6b1d82f8-b2ea-4e43-ae70-6f6bca1ec77a"
+    payload = orjson.dumps({"query": query, "pageNumber": 0, "userSessionId": auth["session_id"]})
     session = urllib3.PoolManager()
-    resp = session.request("POST", "https://api.zeptonow.com/api/v3/search", headers=auth,body=payload_str)
-    data = json.loads(resp.data)
-    # with open("zepto_sample.txt", "w") as f:
-    #     f.write(json.dumps(data,indent=2))
+    resp = session.request("POST", "https://api.zeptonow.com/api/v3/search", headers=auth, body=payload)
+    return resp
+
+def extract_data(data:dict)->Listing:
     for grid in data["layout"][1:-1]:
         for item in grid["data"]["resolver"]["data"]["items"]:
             product = item["productResponse"]
@@ -68,5 +65,15 @@ if __name__ == '__main__':
                 ad=ad,
                 rank=rank
             )
-            print(curr)
+            yield curr
+
+
+if __name__ == '__main__':
+    asyncio.run(main())
+    resp = get_response("pepsi")
+    data = json.loads(resp.data)
+    for item in extract_data(data):
+        print(item)
+
+
 
