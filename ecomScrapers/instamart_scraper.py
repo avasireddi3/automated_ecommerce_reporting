@@ -1,4 +1,5 @@
 import json
+import urllib.parse
 
 import orjson
 from selenium_driverless import webdriver
@@ -17,7 +18,7 @@ async def on_request(data:InterceptedRequest):
         except KeyError:
             print("no auth header found in request")
 
-async def main():
+async def get_auth():
     options = webdriver.ChromeOptions()
     options.headless=True
     async with webdriver.Chrome(options=options) as driver:
@@ -25,17 +26,35 @@ async def main():
             await driver.get("https://www.swiggy.com/instamart/search?custom_back=true&query=idli+rava")
             await driver.sleep(2)
 
-
-if __name__ == '__main__':
-    asyncio.run(main())
-    url = "https://www.swiggy.com/api/instamart/search?pageNumber=1&searchResultsOffset=0&limit=100&query=idli%20rava&ageConsent=false&pageType=INSTAMART_SEARCH_PAGE&isPreSearchTag=false&highConfidencePageNo=0&lowConfidencePageNo=0&voiceSearchTrackingId=&storeId=1390218&primaryStoreId=1390218&secondaryStoreId=1390218"
-    payload = {"facets":{},"sortAttribute":""}
-    payload_str = orjson.dumps(payload)
+def get_response(query:str):
+    params = {"pageNumber": "0",
+              "searchResultsOffset": "0",
+              "limit": "40",
+              "query": query,
+              "ageConsent": "false",
+              "pageType": "INSTAMART_SEARCH_PAGE",
+              "isPreSearchTag": "false",
+              "highConfidencePageNo": "0",
+              "lowConfidencePageNo": "0",
+              "voiceSearchTrackingId": "",
+              "storeId": "1390218",
+              "primaryStoreId": "1390218",
+              "secondaryStoreId": "1390218"}
+    base_url = "https://www.swiggy.com/api/instamart/search"
+    # Use the urllib3 urlencode function to encode the query parameters
+    encoded_params = urllib.parse.urlencode(params)
+    # Combine the base URL and encoded query parameters to form the complete URL
+    complete_url = f"{base_url}?{encoded_params}"
+    payload = {
+        "facets": {},
+        "sortAttribute": ""
+    }
+    payload = orjson.dumps(payload)
     session = urllib3.PoolManager()
-    resp = session.request("POST", url=url, headers=auth,body=payload_str)
-    data = json.loads(resp.data)
-    # with open("instamart_sample.txt","w") as f:
-    #     f.write(json.dumps(data,indent=2))=
+    resp = session.request("POST", url=complete_url, headers=auth, body=payload)
+    return resp
+
+def extract_data(data:dict):
     for item in data["data"]["widgets"][0]["data"]:
         product = item["variations"][0]
         mrp = try_extract(product["price"],"mrp",0)
@@ -64,4 +83,12 @@ if __name__ == '__main__':
             ad = ad,
             rank = rank
         )
-        print(curr)
+        yield curr
+
+if __name__ == '__main__':
+    asyncio.run(get_auth())
+    resp = get_response("bansi sooji")
+    data = json.loads(resp.data)
+    for item in extract_data(data):
+        print(item)
+
