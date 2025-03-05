@@ -18,6 +18,7 @@ async def on_request(data:InterceptedRequest):
 
 async def main():
     options = webdriver.ChromeOptions()
+    options.headless = True
     async with webdriver.Chrome(options=options) as driver:
         async with NetworkInterceptor(driver,on_request=on_request):
             await driver.get("https://www.zeptonow.com/search?query=idli+rava")
@@ -30,7 +31,6 @@ if __name__ == '__main__':
     auth["store_etas"] = """{"17141f08-6ccd-4d8b-ae18-0bd9ebbb8a40":8,"6b1d82f8-b2ea-4e43-ae70-6f6bca1ec77a":17}"""
     auth["store_id"] ="17141f08-6ccd-4d8b-ae18-0bd9ebbb8a40"
     auth["store_ids"] ="17141f08-6ccd-4d8b-ae18-0bd9ebbb8a40,6b1d82f8-b2ea-4e43-ae70-6f6bca1ec77a"
-    print(auth)
     payload = {"query":"idli rava","pageNumber":0,"userSessionId":auth["session_id"]}
     payload_str = orjson.dumps(payload)
     session = urllib3.PoolManager()

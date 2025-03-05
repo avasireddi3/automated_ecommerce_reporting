@@ -19,6 +19,7 @@ async def on_request(data:InterceptedRequest):
 
 async def main():
     options = webdriver.ChromeOptions()
+    options.headless=True
     async with webdriver.Chrome(options=options) as driver:
         async with NetworkInterceptor(driver,on_request=on_request):
             await driver.get("https://www.swiggy.com/instamart/search?custom_back=true&query=idli+rava")

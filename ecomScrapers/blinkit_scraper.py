@@ -20,6 +20,7 @@ async def on_request(data:InterceptedRequest):
 
 async def main():
     options = webdriver.ChromeOptions()
+    options.headless = True
     async with webdriver.Chrome(options=options) as driver:
         async with NetworkInterceptor(driver,on_request=on_request):
             await driver.get("https://blinkit.com/s/?q=idli%20rava")
