@@ -44,6 +44,16 @@ if __name__ == '__main__':
         brand = try_extract(product,"brand", "None")
         name = try_extract(product,"display_name","None")
         cat = try_extract(product,"sub_category_type","None")
+        ads_data = try_extract(item,"sosAdsPositionData","None")
+        if ads_data != "None":
+            rank = ads_data["organic_rank"]
+            if ads_data["ads_rank"]!=-1:
+                ad = True
+            else:
+                ad = False
+        else:
+            ad = False
+            rank=-1
         curr = Listing(
             mrp=mrp,
             price=price,
@@ -51,5 +61,7 @@ if __name__ == '__main__':
             brand=brand,
             name=name,
             cat=cat,
+            ad = ad,
+            rank = rank
         )
         print(curr)

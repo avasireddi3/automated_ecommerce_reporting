@@ -26,27 +26,26 @@ async def main():
             await driver.get("https://blinkit.com/s/?q=idli%20rava")
             await driver.sleep(2)
 
-
-
-
 if __name__ == '__main__':
     asyncio.run(main())
     scraper = cloudscraper.create_scraper()
     auth["lat"] = "13.0159044"
     auth["lon"] = "77.63786189999999"
-    # resp = scraper.get(url = "https://blinkit.com/v6/search/products?start=0&size=50&search_type=7&q=idli%20rava", headers=auth)
-    resp = scraper.get(url="https://blinkit.com/v6/search/products?q=idli%20rava&size=20&start=0&search_type=7&similar=true&search_count=20",
-                       headers=auth)
+    resp = scraper.get(url = "https://blinkit.com/v6/search/products?start=0&size=20&search_type=7&q=idli%20rava", headers=auth)
+    # resp = scraper.get(url="https://blinkit.com/v6/search/products?start=0&size=20&search_type=7&q=idli%20rava",
+    #                    headers=auth)
     data = json.loads(resp.text)
     # with open("blinkit_sample.txt", "w") as f:
     #     f.write(json.dumps(data, indent=2))
-    for listing in data["products"]:
+    for i,listing in enumerate(data["products"]):
         mrp = try_extract(listing,"mrp",0)
         price = try_extract(listing,"price",0)
         unit = try_extract(listing,"unit","0 kg")
         brand = try_extract(listing,"brand","None")
         name = try_extract(listing,"name","None")
         cat = try_extract(listing, "type", "None")
+        ad = try_extract(listing, "is_boosted",False)
+        rank = i
         curr = Listing(
             mrp = mrp,
             price = price,
@@ -54,6 +53,8 @@ if __name__ == '__main__':
             brand = brand,
             name = name,
             cat = cat,
+            ad = ad,
+            rank = rank
         )
         print(curr)
 

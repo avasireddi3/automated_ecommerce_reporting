@@ -7,3 +7,5 @@ class Listing(BaseModel):
     brand: str
     name: str
     cat: str
+    ad: bool
+    rank: int

@@ -41,8 +41,8 @@ if __name__ == '__main__':
     for grid in data["layout"][1:-1]:
         for item in grid["data"]["resolver"]["data"]["items"]:
             product = item["productResponse"]
-            mrp = int(try_extract(product,"mrp",0))/100
-            price = int(try_extract(product,"sellingPrice",0))/100
+            mrp = int(try_extract(product,"mrp",0))//100
+            price = int(try_extract(product,"sellingPrice",0))//100
             try:
                 unit = str(try_extract(product["productVariant"], "weightInGms", "0")) + " g"
             except TypeError:
@@ -53,6 +53,11 @@ if __name__ == '__main__':
                 cat = product["l3CategoriesDetail"][0]["name"]
             except TypeError:
                 cat = "None"
+            if product["meta"]["tags"][0]["type"]=="SPONSORED":
+                ad = True
+            else:
+                ad = False
+            rank = try_extract(item,"position",-1)
             curr = Listing(
                 mrp=mrp,
                 price=price,
@@ -60,6 +65,8 @@ if __name__ == '__main__':
                 brand=brand,
                 name=name,
                 cat=cat,
+                ad=ad,
+                rank=rank
             )
             print(curr)
 
