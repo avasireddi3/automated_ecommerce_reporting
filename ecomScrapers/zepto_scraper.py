@@ -1,4 +1,6 @@
 import json
+import time
+
 import orjson
 import urllib3
 import asyncio
@@ -7,6 +9,7 @@ from selenium_driverless.scripts.network_interceptor import NetworkInterceptor, 
 from rich import print
 from data_models import Listing
 from helper_functions import  try_extract
+from constants import queries,locations
 
 async def on_request(data:InterceptedRequest):
     if "api/v3/search" in data.request.url and data.request.method=="POST":
@@ -24,11 +27,11 @@ async def main():
             await driver.get("https://www.zeptonow.com/search?query=idli+rava")
             await driver.sleep(2)
 
-def get_response(query:str):
-    auth["storeId"] = "17141f08-6ccd-4d8b-ae18-0bd9ebbb8a40"
-    auth["store_etas"] = """{"17141f08-6ccd-4d8b-ae18-0bd9ebbb8a40":0}"""
-    auth["store_id"] = "17141f08-6ccd-4d8b-ae18-0bd9ebbb8a40"
-    auth["store_ids"] = "17141f08-6ccd-4d8b-ae18-0bd9ebbb8a40,6b1d82f8-b2ea-4e43-ae70-6f6bca1ec77a"
+def get_response(query:str,location:str):
+    auth["storeId"] = location
+    auth["store_etas"] = """{"""+location+""":0}"""
+    auth["store_id"] = location
+    auth["store_ids"] = location
     payload = orjson.dumps({"query": query, "pageNumber": 0, "userSessionId": auth["session_id"]})
     session = urllib3.PoolManager()
     resp = session.request("POST", "https://api.zeptonow.com/api/v3/search", headers=auth, body=payload)
@@ -70,10 +73,14 @@ def extract_data(data:dict)->Listing:
 
 if __name__ == '__main__':
     asyncio.run(main())
-    resp = get_response("pepsi")
-    data = json.loads(resp.data)
-    for item in extract_data(data):
-        print(item)
+    for location in locations:
+        for query in queries:
+            print(query,location["name"])
+            resp = get_response(query,location["zepto_id"])
+            data = json.loads(resp.data)
+            for item in extract_data(data):
+                print(item)
+            time.sleep(1)
 
 
 

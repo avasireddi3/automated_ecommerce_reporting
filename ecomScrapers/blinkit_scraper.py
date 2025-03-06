@@ -2,12 +2,14 @@ import json
 import asyncio
 import cloudscraper
 import urllib
+import time
 import requests.models
 from selenium_driverless import webdriver
 from selenium_driverless.scripts.network_interceptor import NetworkInterceptor, InterceptedRequest
 from rich import print
 from data_models import Listing
 from helper_functions import try_extract
+from constants import locations, queries
 
 
 async def on_request(data:InterceptedRequest):
@@ -27,10 +29,10 @@ async def get_auth():
             await driver.get("https://blinkit.com/s/?q=idli%20rava")
             await driver.sleep(2)
 
-def get_response(query:str)->requests.models.Response:
+def get_response(query:str,location:dict)->requests.models.Response:
     scraper = cloudscraper.create_scraper()
-    auth["lat"] = "13.0159044"
-    auth["lon"] = "77.63786189999999"
+    auth["lat"] = location["lat"]
+    auth["lon"] = location["lon"]
     params = {
         "start":"0",
         "size":"20",
@@ -42,7 +44,6 @@ def get_response(query:str)->requests.models.Response:
     complete_url = f"{base_url}?{encoded_params}"
     resp = scraper.get(url=complete_url,
                        headers=auth)
-    print(type(resp))
     return resp
 
 def extract_data(data:dict)->Listing:
@@ -69,10 +70,14 @@ def extract_data(data:dict)->Listing:
 
 if __name__ == '__main__':
     asyncio.run(get_auth())
-    resp = get_response("chips")
-    data = json.loads(resp.text)
-    for item in extract_data(data):
-        print(item)
+    for location in locations:
+        for query in queries:
+            print(query, location["name"])
+            resp = get_response(query,location)
+            data = json.loads(resp.text)
+            for item in extract_data(data):
+                print(item)
+            time.sleep(1)
 
 
 

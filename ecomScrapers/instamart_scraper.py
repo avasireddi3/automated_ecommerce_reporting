@@ -1,14 +1,15 @@
 import json
+import time
 import urllib.parse
-
 import orjson
-from selenium_driverless import webdriver
-import asyncio
-from rich import print
-from selenium_driverless.scripts.network_interceptor import NetworkInterceptor, InterceptedRequest
 import urllib3
+import asyncio
+from selenium_driverless import webdriver
+from selenium_driverless.scripts.network_interceptor import NetworkInterceptor, InterceptedRequest
+from rich import print
 from helper_functions import try_extract
 from data_models import Listing
+from constants import queries, locations
 
 async def on_request(data:InterceptedRequest):
     if "api/instamart/search" in data.request.url and data.request.method=="POST":
@@ -26,7 +27,7 @@ async def get_auth():
             await driver.get("https://www.swiggy.com/instamart/search?custom_back=true&query=idli+rava")
             await driver.sleep(2)
 
-def get_response(query:str):
+def get_response(query:str,location:str)->urllib3.response:
     params = {"pageNumber": "0",
               "searchResultsOffset": "0",
               "limit": "40",
@@ -37,9 +38,9 @@ def get_response(query:str):
               "highConfidencePageNo": "0",
               "lowConfidencePageNo": "0",
               "voiceSearchTrackingId": "",
-              "storeId": "1390218",
-              "primaryStoreId": "1390218",
-              "secondaryStoreId": "1390218"}
+              "storeId": location,
+              "primaryStoreId": location,
+              "secondaryStoreId": location}
     base_url = "https://www.swiggy.com/api/instamart/search"
     # Use the urllib3 urlencode function to encode the query parameters
     encoded_params = urllib.parse.urlencode(params)
@@ -54,7 +55,7 @@ def get_response(query:str):
     resp = session.request("POST", url=complete_url, headers=auth, body=payload)
     return resp
 
-def extract_data(data:dict):
+def extract_data(data:dict)->Listing:
     for item in data["data"]["widgets"][0]["data"]:
         product = item["variations"][0]
         mrp = try_extract(product["price"],"mrp",0)
@@ -63,16 +64,16 @@ def extract_data(data:dict):
         brand = try_extract(product,"brand", "None")
         name = try_extract(product,"display_name","None")
         cat = try_extract(product,"sub_category_type","None")
+        rank = try_extract(item,"retrievalRank",-1)
         ads_data = try_extract(item,"sosAdsPositionData","None")
-        if ads_data != "None":
-            rank = ads_data["organic_rank"]
-            if ads_data["ads_rank"]!=-1:
+        if ads_data and ads_data!="None":
+            adrank = try_extract(ads_data,"ads_rank",-1)
+            if adrank!=-1:
                 ad = True
             else:
                 ad = False
         else:
             ad = False
-            rank=-1
         curr = Listing(
             mrp=mrp,
             price=price,
@@ -87,8 +88,17 @@ def extract_data(data:dict):
 
 if __name__ == '__main__':
     asyncio.run(get_auth())
-    resp = get_response("bansi sooji")
-    data = json.loads(resp.data)
-    for item in extract_data(data):
-        print(item)
+    for location in locations:
+        for query in queries:
+            print(query, location["name"])
+            resp = get_response(query,location["instamart_id"])
+            data = json.loads(resp.data)
+            for item in extract_data(data):
+                print(item)
+            time.sleep(1)
 
+    # print("poha", locations[0]["name"])
+    # resp = get_response("poha", locations[0]["instamart_id"])
+    # data = json.loads(resp.data)
+    # with open("../zepto_sample.txt","w") as f:
+    #     f.write(json.dumps(data,indent=2))
