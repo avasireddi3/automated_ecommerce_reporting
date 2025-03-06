@@ -4,12 +4,19 @@ import urllib.parse
 import orjson
 import urllib3
 import asyncio
+import datetime
+import logging
 from selenium_driverless import webdriver
 from selenium_driverless.scripts.network_interceptor import NetworkInterceptor, InterceptedRequest
 from rich import print
 from ecomScrapers.helper_functions import try_extract
 from ecomScrapers.data_models import Listing
 from ecomScrapers.constants import queries, locations
+
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
+
 
 async def on_request(data:InterceptedRequest):
     if "api/instamart/search" in data.request.url and data.request.method=="POST":
@@ -20,6 +27,7 @@ async def on_request(data:InterceptedRequest):
             print("no auth header found in request")
 
 async def get_auth():
+    logger.info("Starting request for headers")
     options = webdriver.ChromeOptions()
     options.headless=True
     async with webdriver.Chrome(options=options) as driver:
@@ -28,6 +36,7 @@ async def get_auth():
             await driver.sleep(2)
 
 def get_response(query:str,location:str)->urllib3.response:
+    logger.info("Getting response")
     params = {"pageNumber": "0",
               "searchResultsOffset": "0",
               "limit": "40",
@@ -56,6 +65,7 @@ def get_response(query:str,location:str)->urllib3.response:
     return resp
 
 def extract_data(data:dict)->Listing:
+    logger.info("Extracting data")
     for item in data["data"]["widgets"][0]["data"]:
         product = item["variations"][0]
         mrp = try_extract(product["price"],"mrp",0)
@@ -75,6 +85,8 @@ def extract_data(data:dict)->Listing:
         else:
             ad = False
         curr = Listing(
+            platform="instamart",
+            timestamp= datetime.datetime.now(),
             mrp=mrp,
             price=price,
             unit=unit,
@@ -82,12 +94,14 @@ def extract_data(data:dict)->Listing:
             name=name,
             cat=cat,
             ad = ad,
-            rank = rank
+            rank = rank,
         )
         yield curr.model_dump()
 
 def scrape():
+    logger.info('Starting instamart scraper')
     asyncio.run(get_auth())
+    logger.info('Headers in place')
     for location in locations:
         for query in queries:
             print(query, location["name"])
@@ -96,14 +110,10 @@ def scrape():
             items = []
             for item in extract_data(data):
                 items.append(item)
-            yield items
             time.sleep(0.5)
+            logger.info(f"Recieved listings for {query} in {location["name"]}")
+            yield items
+
 
 if __name__ == '__main__':
     scrape()
-
-    # print("poha", locations[0]["name"])
-    # resp = get_response("poha", locations[0]["instamart_id"])
-    # data = json.loads(resp.data)
-    # with open("../zepto_sample.txt","w") as f:
-    #     f.write(json.dumps(data,indent=2))

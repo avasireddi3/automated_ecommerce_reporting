@@ -3,12 +3,17 @@ import time
 import orjson
 import urllib3
 import asyncio
+import datetime
+import logging
 from selenium_driverless import webdriver
 from selenium_driverless.scripts.network_interceptor import NetworkInterceptor, InterceptedRequest
 from rich import print
 from ecomScrapers.data_models import Listing
 from ecomScrapers.helper_functions import  try_extract
 from ecomScrapers.constants import queries,locations
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 async def on_request(data:InterceptedRequest):
     if "api/v3/search" in data.request.url and data.request.method=="POST":
@@ -18,7 +23,8 @@ async def on_request(data:InterceptedRequest):
         except KeyError:
             print("no auth header found in request")
 
-async def main():
+async def get_auth():
+    logger.info("Starting request for headers")
     options = webdriver.ChromeOptions()
     options.headless = True
     async with webdriver.Chrome(options=options) as driver:
@@ -27,6 +33,7 @@ async def main():
             await driver.sleep(1)
 
 def get_response(query:str,location:str):
+    logger.info("Getting response")
     print("getting response")
     auth["storeId"] = location
     auth["store_etas"] = """{"""+location+""":0}"""
@@ -38,6 +45,7 @@ def get_response(query:str,location:str):
     return resp
 
 def extract_data(data:dict)->dict:
+    logger.info("Extracting data")
     for grid in data["layout"][1:-1]:
         for item in grid["data"]["resolver"]["data"]["items"]:
             product = item["productResponse"]
@@ -59,6 +67,8 @@ def extract_data(data:dict)->dict:
                 ad = False
             rank = try_extract(item,"position",-1)
             curr = Listing(
+                platform="zepto",
+                timestamp=datetime.datetime.now(),
                 mrp=mrp,
                 price=price,
                 unit=unit,
@@ -71,7 +81,9 @@ def extract_data(data:dict)->dict:
             yield curr.model_dump()
 
 def scrape():
-    asyncio.run(main())
+    logger.info('Starting zepto scraper')
+    asyncio.run(get_auth())
+    logger.info('Headers in place')
     for location in locations:
         for query in queries:
             items = []
@@ -80,8 +92,10 @@ def scrape():
             data = json.loads(resp.data)
             for item in extract_data(data):
                 items.append(item)
-            yield items
             time.sleep(0.5)
+            logger.info(f"Recieved listings for {query} in {location["name"]}")
+            yield items
+
 
 
 if __name__ == '__main__':
