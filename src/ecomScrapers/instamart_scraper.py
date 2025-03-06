@@ -7,9 +7,9 @@ import asyncio
 from selenium_driverless import webdriver
 from selenium_driverless.scripts.network_interceptor import NetworkInterceptor, InterceptedRequest
 from rich import print
-from helper_functions import try_extract
-from data_models import Listing
-from constants import queries, locations
+from ecomScrapers.helper_functions import try_extract
+from ecomScrapers.data_models import Listing
+from ecomScrapers.constants import queries, locations
 
 async def on_request(data:InterceptedRequest):
     if "api/instamart/search" in data.request.url and data.request.method=="POST":
@@ -84,18 +84,23 @@ def extract_data(data:dict)->Listing:
             ad = ad,
             rank = rank
         )
-        yield curr
+        yield curr.model_dump()
 
-if __name__ == '__main__':
+def scrape():
     asyncio.run(get_auth())
     for location in locations:
         for query in queries:
             print(query, location["name"])
-            resp = get_response(query,location["instamart_id"])
+            resp = get_response(query, location["instamart_id"])
             data = json.loads(resp.data)
+            items = []
             for item in extract_data(data):
-                print(item)
-            time.sleep(1)
+                items.append(item)
+            yield items
+            time.sleep(0.5)
+
+if __name__ == '__main__':
+    scrape()
 
     # print("poha", locations[0]["name"])
     # resp = get_response("poha", locations[0]["instamart_id"])
