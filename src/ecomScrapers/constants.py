@@ -1,7 +1,7 @@
 queries = [
     "idli rava",
-    "bansi sooji",
-    "poha"
+    # "bansi sooji",
+    # "poha"
 ]
 
 locations = [

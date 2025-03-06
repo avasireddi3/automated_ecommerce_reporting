@@ -7,9 +7,9 @@ import requests.models
 from selenium_driverless import webdriver
 from selenium_driverless.scripts.network_interceptor import NetworkInterceptor, InterceptedRequest
 from rich import print
-from data_models import Listing
-from helper_functions import try_extract
-from constants import locations, queries
+from ecomScrapers.data_models import Listing
+from ecomScrapers.helper_functions import try_extract
+from ecomScrapers.constants import locations, queries
 
 
 async def on_request(data:InterceptedRequest):
@@ -66,18 +66,23 @@ def extract_data(data:dict)->Listing:
             ad = ad,
             rank = rank
         )
-        yield curr
+        yield curr.model_dump()
 
-if __name__ == '__main__':
+def scrape():
     asyncio.run(get_auth())
     for location in locations:
         for query in queries:
+            items = []
             print(query, location["name"])
-            resp = get_response(query,location)
+            resp = get_response(query, location)
             data = json.loads(resp.text)
             for item in extract_data(data):
-                print(item)
-            time.sleep(1)
+                items.append(item)
+            time.sleep(0.5)
+            yield items
+
+if __name__ == '__main__':
+    scrape()
 
 
 

@@ -7,9 +7,9 @@ import asyncio
 from selenium_driverless import webdriver
 from selenium_driverless.scripts.network_interceptor import NetworkInterceptor, InterceptedRequest
 from rich import print
-from data_models import Listing
-from helper_functions import  try_extract
-from constants import queries,locations
+from ecomScrapers.data_models import Listing
+from ecomScrapers.helper_functions import  try_extract
+from ecomScrapers.constants import queries,locations
 
 async def on_request(data:InterceptedRequest):
     if "api/v3/search" in data.request.url and data.request.method=="POST":
@@ -70,17 +70,20 @@ def extract_data(data:dict)->Listing:
             )
             yield curr
 
-
-if __name__ == '__main__':
+def scrape():
     asyncio.run(main())
     for location in locations:
         for query in queries:
-            print(query,location["name"])
-            resp = get_response(query,location["zepto_id"])
+            print(query, location["name"])
+            resp = get_response(query, location["zepto_id"])
             data = json.loads(resp.data)
             for item in extract_data(data):
                 print(item)
             time.sleep(1)
+
+
+if __name__ == '__main__':
+    scrape_zepto()
 
 
 
