@@ -1,6 +1,5 @@
 import json
 import time
-
 import orjson
 import urllib3
 import asyncio
@@ -25,9 +24,10 @@ async def main():
     async with webdriver.Chrome(options=options) as driver:
         async with NetworkInterceptor(driver,on_request=on_request):
             await driver.get("https://www.zeptonow.com/search?query=idli+rava")
-            await driver.sleep(2)
+            await driver.sleep(1)
 
 def get_response(query:str,location:str):
+    print("getting response")
     auth["storeId"] = location
     auth["store_etas"] = """{"""+location+""":0}"""
     auth["store_id"] = location
@@ -37,7 +37,7 @@ def get_response(query:str,location:str):
     resp = session.request("POST", "https://api.zeptonow.com/api/v3/search", headers=auth, body=payload)
     return resp
 
-def extract_data(data:dict)->Listing:
+def extract_data(data:dict)->dict:
     for grid in data["layout"][1:-1]:
         for item in grid["data"]["resolver"]["data"]["items"]:
             product = item["productResponse"]
@@ -68,22 +68,24 @@ def extract_data(data:dict)->Listing:
                 ad=ad,
                 rank=rank
             )
-            yield curr
+            yield curr.model_dump()
 
 def scrape():
     asyncio.run(main())
     for location in locations:
         for query in queries:
+            items = []
             print(query, location["name"])
             resp = get_response(query, location["zepto_id"])
             data = json.loads(resp.data)
             for item in extract_data(data):
-                print(item)
-            time.sleep(1)
+                items.append(item)
+            yield items
+            time.sleep(0.5)
 
 
 if __name__ == '__main__':
-    scrape_zepto()
+    scrape()
 
 
 
