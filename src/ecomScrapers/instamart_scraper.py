@@ -66,7 +66,7 @@ def get_response(query:str,location:str)->urllib3.response:
 
 def extract_data(data:dict)->Listing:
     logger.info("Extracting data")
-    for item in data["data"]["widgets"][0]["data"]:
+    for i,item in enumerate(data["data"]["widgets"][0]["data"]):
         product = item["variations"][0]
         mrp = try_extract(product["price"],"mrp",0)
         price = try_extract(product["price"],"store_price",0)
@@ -74,7 +74,6 @@ def extract_data(data:dict)->Listing:
         brand = try_extract(product,"brand", "None")
         name = try_extract(product,"display_name","None")
         cat = try_extract(product,"sub_category_type","None")
-        rank = try_extract(item,"retrievalRank",-1)
         ads_data = try_extract(item,"sosAdsPositionData","None")
         if ads_data and ads_data!="None":
             adrank = try_extract(ads_data,"ads_rank",-1)
@@ -94,7 +93,7 @@ def extract_data(data:dict)->Listing:
             name=name,
             cat=cat,
             ad = ad,
-            rank = rank,
+            rank = i,
         )
         yield curr.model_dump()
 
@@ -104,7 +103,6 @@ def scrape():
     logger.info('Headers in place')
     for location in locations:
         for query in queries:
-            print(query, location["name"])
             resp = get_response(query, location["instamart_id"])
             data = json.loads(resp.data)
             items = []

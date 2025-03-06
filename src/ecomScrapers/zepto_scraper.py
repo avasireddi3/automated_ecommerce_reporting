@@ -34,7 +34,6 @@ async def get_auth():
 
 def get_response(query:str,location:str):
     logger.info("Getting response")
-    print("getting response")
     auth["storeId"] = location
     auth["store_etas"] = """{"""+location+""":0}"""
     auth["store_id"] = location
@@ -87,7 +86,6 @@ def scrape():
     for location in locations:
         for query in queries:
             items = []
-            print(query, location["name"])
             resp = get_response(query, location["zepto_id"])
             data = json.loads(resp.data)
             for item in extract_data(data):
