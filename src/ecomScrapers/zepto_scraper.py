@@ -50,10 +50,11 @@ def extract_data(data:dict,query:str,loc:str)->dict:
             product = item["productResponse"]
             mrp = int(try_extract(product,"mrp",0))//100
             price = int(try_extract(product,"sellingPrice",0))//100
-            try:
-                unit = str(try_extract(product["productVariant"], "weightInGms", "0")) + " g"
-            except TypeError:
-                unit = try_extract(product["l4Attributes"], "weight", "0 kg")
+            unit = try_extract(product["productVariant"],"weightInGms",0)
+            # try:
+            #     unit = str(try_extract(product["productVariant"], "weightInGms", "0")) + " g"
+            # except TypeError:
+            #     unit = try_extract(product["l4Attributes"], "weight", "0 kg")
             name = try_extract(product["product"],"name","None")
             brand = try_extract(product["product"],"brand","None")
             try:

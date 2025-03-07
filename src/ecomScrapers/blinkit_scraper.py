@@ -10,7 +10,7 @@ from selenium_driverless import webdriver
 from selenium_driverless.scripts.network_interceptor import NetworkInterceptor, InterceptedRequest
 from rich import print
 from ecomScrapers.data_models import Listing
-from ecomScrapers.helper_functions import try_extract
+from ecomScrapers.helper_functions import try_extract,parse_weight
 from ecomScrapers.constants import locations, queries
 
 logger = logging.getLogger(__name__)
@@ -58,6 +58,7 @@ def extract_data(data:dict,query:str, loc:str)->Listing:
         mrp = try_extract(listing,"mrp",0)
         price = try_extract(listing,"price",0)
         unit = try_extract(listing,"unit","0 kg")
+        unit = parse_weight(unit)
         brand = try_extract(listing,"brand","None")
         name = try_extract(listing,"name","None")
         cat = try_extract(listing, "type", "None")

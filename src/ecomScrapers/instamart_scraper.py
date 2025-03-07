@@ -70,7 +70,7 @@ def extract_data(data:dict, query:str, loc:str)->Listing:
         product = item["variations"][0]
         mrp = try_extract(product["price"],"mrp",0)
         price = try_extract(product["price"],"store_price",0)
-        unit = try_extract(product,"quantity","0 kg")
+        unit = try_extract(product,"weight_in_grams",0)
         brand = try_extract(product,"brand", "None")
         name = try_extract(product,"display_name","None")
         cat = try_extract(product,"sub_category_type","None")

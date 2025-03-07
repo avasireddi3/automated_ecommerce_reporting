@@ -8,7 +8,7 @@ class Listing(BaseModel):
     location: str
     mrp: int
     price: int
-    unit: str
+    unit: int
     brand: str
     name: str
     cat: str
