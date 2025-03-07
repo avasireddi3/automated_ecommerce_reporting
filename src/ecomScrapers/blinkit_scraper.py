@@ -52,7 +52,7 @@ def get_response(query:str,location:dict)->requests.models.Response:
                        headers=auth)
     return resp
 
-def extract_data(data:dict)->Listing:
+def extract_data(data:dict,query:str, loc:str)->Listing:
     logger.info("Extracting data")
     for i,listing in enumerate(data["products"]):
         mrp = try_extract(listing,"mrp",0)
@@ -66,6 +66,8 @@ def extract_data(data:dict)->Listing:
         curr = Listing(
             platform="blinkit",
             timestamp=datetime.datetime.now(),
+            search_term=query,
+            location=loc,
             mrp = mrp,
             price = price,
             unit = unit,
@@ -86,7 +88,7 @@ def scrape():
             items = []
             resp = get_response(query, location)
             data = json.loads(resp.text)
-            for item in extract_data(data):
+            for item in extract_data(data,query,location["name"]):
                 items.append(item)
             time.sleep(0.5)
             logger.info(f"Recieved listings for {query} in {location["name"]}")

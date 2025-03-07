@@ -64,7 +64,7 @@ def get_response(query:str,location:str)->urllib3.response:
     resp = session.request("POST", url=complete_url, headers=auth, body=payload)
     return resp
 
-def extract_data(data:dict)->Listing:
+def extract_data(data:dict, query:str, loc:str)->Listing:
     logger.info("Extracting data")
     for i,item in enumerate(data["data"]["widgets"][0]["data"]):
         product = item["variations"][0]
@@ -86,6 +86,8 @@ def extract_data(data:dict)->Listing:
         curr = Listing(
             platform="instamart",
             timestamp= datetime.datetime.now(),
+            search_term=query,
+            location=loc,
             mrp=mrp,
             price=price,
             unit=unit,
@@ -106,7 +108,7 @@ def scrape():
             resp = get_response(query, location["instamart_id"])
             data = json.loads(resp.data)
             items = []
-            for item in extract_data(data):
+            for item in extract_data(data,query,location["name"]):
                 items.append(item)
             time.sleep(0.5)
             logger.info(f"Recieved listings for {query} in {location["name"]}")

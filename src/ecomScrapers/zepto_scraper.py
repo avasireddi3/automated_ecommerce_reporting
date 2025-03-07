@@ -43,7 +43,7 @@ def get_response(query:str,location:str):
     resp = session.request("POST", "https://api.zeptonow.com/api/v3/search", headers=auth, body=payload)
     return resp
 
-def extract_data(data:dict)->dict:
+def extract_data(data:dict,query:str,loc:str)->dict:
     logger.info("Extracting data")
     for grid in data["layout"][1:-1]:
         for item in grid["data"]["resolver"]["data"]["items"]:
@@ -68,6 +68,8 @@ def extract_data(data:dict)->dict:
             curr = Listing(
                 platform="zepto",
                 timestamp=datetime.datetime.now(),
+                search_term = query,
+                location = loc,
                 mrp=mrp,
                 price=price,
                 unit=unit,
@@ -88,7 +90,7 @@ def scrape():
             items = []
             resp = get_response(query, location["zepto_id"])
             data = json.loads(resp.data)
-            for item in extract_data(data):
+            for item in extract_data(data,query,location["name"]):
                 items.append(item)
             time.sleep(0.5)
             logger.info(f"Recieved listings for {query} in {location["name"]}")
