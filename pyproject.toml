@@ -1,0 +1,16 @@
+[project]
+name = "saroj-analytics"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "cloudscraper==1.2.71",
+    "orjson==3.10.15",
+    "pydantic==2.10.6",
+    "requests==2.32.3",
+    "rich==13.9.4",
+    "selenium-driverless==1.9.4",
+    "urllib3==2.3.0",
+    "uv>=0.6.5",
+]
