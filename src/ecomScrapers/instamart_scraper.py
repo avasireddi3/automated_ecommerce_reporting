@@ -9,10 +9,7 @@ import logging
 from selenium_driverless import webdriver
 from selenium_driverless.scripts.network_interceptor import NetworkInterceptor, InterceptedRequest
 from rich import print
-from ecomScrapers.helper_functions import try_extract
-from ecomScrapers.data_models import Listing
-from ecomScrapers.constants import queries, locations
-
+from utils import try_extract, Listing, queries, locations
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -99,7 +96,7 @@ def extract_data(data:dict, query:str, loc:str)->Listing:
         )
         yield curr.model_dump()
 
-def scrape():
+def scrape_instamart():
     logger.info('Starting instamart scraper')
     asyncio.run(get_auth())
     logger.info('Headers in place')

@@ -8,9 +8,7 @@ import logging
 from selenium_driverless import webdriver
 from selenium_driverless.scripts.network_interceptor import NetworkInterceptor, InterceptedRequest
 from rich import print
-from ecomScrapers.data_models import Listing
-from ecomScrapers.helper_functions import  try_extract
-from ecomScrapers.constants import queries,locations
+from utils import try_extract, Listing, queries, locations
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -34,6 +32,7 @@ async def get_auth():
 
 def get_response(query:str,location:str):
     logger.info("Getting response")
+    auth["user-agent"] = "Mozilla/5.0(Linux; U; Android 2.2; en-gb; LG-P500 Build/FRF91) AppleWebKit/533.0 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1"
     auth["storeId"] = location
     auth["store_etas"] = """{"""+location+""":0}"""
     auth["store_id"] = location
@@ -82,7 +81,7 @@ def extract_data(data:dict,query:str,loc:str)->dict:
             )
             yield curr.model_dump()
 
-def scrape():
+def scrape_zepto():
     logger.info('Starting zepto scraper')
     asyncio.run(get_auth())
     logger.info('Headers in place')
