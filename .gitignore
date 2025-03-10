@@ -3,3 +3,6 @@
 *.xml
 test_html*.txt
 *.txt
+*.csv*
+*credentials.py
+src/test*
