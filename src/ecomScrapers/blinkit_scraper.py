@@ -9,7 +9,7 @@ import logging
 from selenium_driverless import webdriver
 from selenium_driverless.scripts.network_interceptor import NetworkInterceptor, InterceptedRequest
 from rich import print
-from utils import try_extract, Listing, queries, locations, parse_weight
+from src.utils import try_extract, Listing, queries, locations, parse_weight
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)

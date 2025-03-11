@@ -9,7 +9,7 @@ import logging
 from selenium_driverless import webdriver
 from selenium_driverless.scripts.network_interceptor import NetworkInterceptor, InterceptedRequest
 from rich import print
-from utils import try_extract, Listing, queries, locations
+from src.utils import try_extract, Listing, queries, locations
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -70,8 +70,8 @@ def extract_data(data:dict, query:str, loc:str)->Listing:
     logger.info("Extracting data")
     for i,item in enumerate(data["data"]["widgets"][0]["data"]):
         product = item["variations"][0]
-        mrp = try_extract(product["price"],"mrp",0)
-        price = try_extract(product["price"],"store_price",0)
+        mrp = try_extract(product["price"],"store_price",0)
+        price = try_extract(product["price"],"offer_price",0)
         unit = try_extract(product,"weight_in_grams",0)
         brand = try_extract(product,"brand", "None")
         name = try_extract(product,"display_name","None")
