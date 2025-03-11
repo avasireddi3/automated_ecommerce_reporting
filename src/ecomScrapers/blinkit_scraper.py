@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 async def on_request(data:InterceptedRequest):
-    if "search" in data.request.url and data.request.method=="POST":
+    if "search" in data.request.url and data.request.method=="GET":
         global auth
         try:
             if data.request.headers["auth_key"]:
@@ -26,6 +26,10 @@ async def on_request(data:InterceptedRequest):
 async def get_auth():
     logger.info("Starting request for headers")
     options = webdriver.ChromeOptions()
+    options.add_argument("--window-size=1920,1080")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")  # Important for Docker
+    options.add_argument("--disable-gpu")
     options.headless = True
     async with webdriver.Chrome(options=options) as driver:
         async with NetworkInterceptor(driver,on_request=on_request):
@@ -94,7 +98,7 @@ def scrape_blinkit():
             yield items
 
 if __name__ == '__main__':
-    scrape()
+    scrape_blinkit()
 
 
 
