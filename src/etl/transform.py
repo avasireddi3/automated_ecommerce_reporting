@@ -4,6 +4,7 @@ from src.config import similarity_threshold
 
 
 def filter_clean()->pl.dataframe:
+    """data processing operations to filter and clean data"""
     data = pl.read_csv("demo_files/test.csv")
     data = data.filter(
         pl.col("brand").is_not_null(),

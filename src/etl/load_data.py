@@ -5,10 +5,12 @@ from src.config import uri, table_name, xlsx_file_name, colors_hex
 
 
 def write_db(data:pl.dataframe)->None:
+    """write to database located at the uri in config.py"""
     data.write_database(table_name=table_name,connection=uri,
                         if_table_exists="append")
 
 def split_tables_sheet(data:pl.dataframe)->pl.dataframe:
+    """split data into tables by platform for insertion into excel sheet"""
     dataframes = data.select(["platform",
                    "timestamp",
                    "search_term",
@@ -23,6 +25,7 @@ def split_tables_sheet(data:pl.dataframe)->pl.dataframe:
         yield frame
 
 def write_excel(data:pl.dataframe)->None:
+    """write data to xlsx file"""
     row_count = {}
     with xlsxwriter.Workbook(f"demo_files/{xlsx_file_name}.xlsx") as f:
         for frame in split_tables_sheet(data):
