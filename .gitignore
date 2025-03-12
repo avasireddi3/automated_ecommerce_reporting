@@ -2,7 +2,11 @@
 .idea/*
 *.xml
 test_html*.txt
-*.txt
 *.csv*
 *credentials.py
-src/test*
+demo_files
+sample_jsons
+*.ipynb*
+test.db
+airflow_docker
+project_outline.txt
