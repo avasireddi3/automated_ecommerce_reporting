@@ -9,6 +9,7 @@ from selenium_driverless import webdriver
 from selenium_driverless.scripts.network_interceptor import NetworkInterceptor, InterceptedRequest
 from rich import print
 from src.utils import try_extract, Listing, queries, locations
+from alive_progress import alive_bar
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -22,7 +23,7 @@ async def on_request(data:InterceptedRequest):
             print("no auth header found in request")
 
 async def get_auth():
-    logger.info("Starting request for headers")
+    logger.debug("Starting request for headers")
     options = webdriver.ChromeOptions()
     options.add_argument("--window-size=1920,1080")
     options.add_argument("--no-sandbox")
@@ -35,7 +36,7 @@ async def get_auth():
             await driver.sleep(1)
 
 def get_response(query:str,location:str):
-    logger.info("Getting response")
+    logger.debug("Getting response")
     auth["user-agent"] = "Mozilla/5.0(Linux; U; Android 2.2; en-gb; LG-P500 Build/FRF91) AppleWebKit/533.0 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1"
     auth["storeId"] = location
     auth["store_etas"] = """{"""+location+""":0}"""
@@ -47,7 +48,7 @@ def get_response(query:str,location:str):
     return resp
 
 def extract_data(data:dict,query:str,loc:str)->dict:
-    logger.info("Extracting data")
+    logger.debug("Extracting data")
     for grid in data["layout"][1:-1]:
         for item in grid["data"]["resolver"]["data"]["items"]:
             product = item["productResponse"]
@@ -86,24 +87,29 @@ def extract_data(data:dict,query:str,loc:str)->dict:
             yield curr.model_dump()
 
 def scrape_zepto():
-    logger.info('Starting zepto scraper')
-    asyncio.run(get_auth())
-    logger.info('Headers in place')
-    for location in locations:
-        for query in queries:
-            items = []
-            resp = get_response(query, location["zepto_id"])
-            data = json.loads(resp.data)
-            for item in extract_data(data,query,location["name"]):
-                items.append(item)
-            time.sleep(0.5)
-            logger.info(f"Recieved listings for {query} in {location["name"]}")
-            yield items
+    with alive_bar(unknown="waves") as bar:
+        bar()
+        logger.info('Starting zepto scraper')
+        asyncio.run(get_auth())
+        logger.info("Initialized zepto scraper")
+    logger.debug('Headers in place')
+    with alive_bar(total=len(locations) * len(queries),bar="classic") as bar:
+        for location in locations:
+            for query in queries:
+                items = []
+                resp = get_response(query, location["zepto_id"])
+                data = json.loads(resp.data)
+                for item in extract_data(data,query,location["name"]):
+                    items.append(item)
+                time.sleep(0.5)
+                bar()
+                logger.debug(f"Recieved listings for {query} in {location["name"]}")
+                yield items
 
 
 
 if __name__ == '__main__':
-    scrape()
+    scrape_zepto()
 
 
 

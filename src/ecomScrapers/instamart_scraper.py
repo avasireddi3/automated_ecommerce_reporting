@@ -10,6 +10,7 @@ from selenium_driverless import webdriver
 from selenium_driverless.scripts.network_interceptor import NetworkInterceptor, InterceptedRequest
 from rich import print
 from src.utils import try_extract, Listing, queries, locations
+from alive_progress import alive_bar
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -24,7 +25,7 @@ async def on_request(data:InterceptedRequest):
             print("no auth header found in request")
 
 async def get_auth():
-    logger.info("Starting request for headers")
+    logger.debug("Starting request for headers")
     options = webdriver.ChromeOptions()
     options.add_argument("--window-size=1920,1080")
     options.add_argument("--window-size=1920,1080")
@@ -38,7 +39,7 @@ async def get_auth():
             await driver.sleep(2)
 
 def get_response(query:str,location:str)->urllib3.response:
-    logger.info("Getting response")
+    logger.debug("Getting response")
     params = {"pageNumber": "0",
               "searchResultsOffset": "0",
               "limit": "40",
@@ -67,7 +68,7 @@ def get_response(query:str,location:str)->urllib3.response:
     return resp
 
 def extract_data(data:dict, query:str, loc:str)->Listing:
-    logger.info("Extracting data")
+    logger.debug("Extracting data")
     for i,item in enumerate(data["data"]["widgets"][0]["data"]):
         product = item["variations"][0]
         mrp = try_extract(product["price"],"store_price",0)
@@ -102,20 +103,25 @@ def extract_data(data:dict, query:str, loc:str)->Listing:
         yield curr.model_dump()
 
 def scrape_instamart():
-    logger.info('Starting instamart scraper')
-    asyncio.run(get_auth())
-    logger.info('Headers in place')
-    for location in locations:
-        for query in queries:
-            resp = get_response(query, location["instamart_id"])
-            data = json.loads(resp.data)
-            items = []
-            for item in extract_data(data,query,location["name"]):
-                items.append(item)
-            time.sleep(0.5)
-            logger.info(f"Recieved listings for {query} in {location["name"]}")
-            yield items
+    with alive_bar(unknown="waves") as bar:
+        bar()
+        logger.info('Starting instamart scraper')
+        asyncio.run(get_auth())
+        logger.info("Initialized instamart scraper")
+    logger.debug('Headers in place')
+    with alive_bar(total = len(locations)*len(queries), bar="classic") as bar:
+        for location in locations:
+            for query in queries:
+                resp = get_response(query, location["instamart_id"])
+                data = json.loads(resp.data)
+                items = []
+                for item in extract_data(data,query,location["name"]):
+                    items.append(item)
+                time.sleep(0.5)
+                bar()
+                logger.debug(f"Recieved listings for {query} in {location["name"]}")
+                yield items
 
 
 if __name__ == '__main__':
-    scrape()
+    scrape_instamart()

@@ -46,6 +46,21 @@ class PricingReport(FPDF):
                 for datum in data_row:
                     row.cell(str(datum))
 
+
+def split_tables_report(data:pl.dataframe)->pl.dataframe:
+    dataframes = data.select(["platform",
+                   "timestamp",
+                   "search_term",
+                   "brand",
+                   "product_name",
+                   "mrp",
+                   "price",
+                   "unit",
+                   "ppu",
+                   "discount_pct"]).partition_by(["platform","search_term"])
+    for frame in dataframes:
+        yield frame
+
 def create_report(frames:list[pl.dataframe]):
     pdf = PricingReport()
     bg_image = Image.open("./assets/report_bg.jpg")
@@ -55,8 +70,6 @@ def create_report(frames:list[pl.dataframe]):
     pdf.alias_nb_pages()
     pdf.add_page()
     pdf.set_font('Helvetica', '', 12)
-
-    page_no = pdf.get_page_label()
     for frame in frames:
         pdf.insert_table(frame)
         pdf.ln()

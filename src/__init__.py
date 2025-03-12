@@ -1,1 +1,1 @@
-from src import extract,transform,load_data,report_generator,utils,ecomScrapers
+import src.utils,src.ecomScrapers,src.etl,src.reportGeneration

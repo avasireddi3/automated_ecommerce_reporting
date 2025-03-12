@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "alive-progress>=3.2.0",
     "cloudscraper==1.2.71",
     "fpdf2>=2.8.2",
     "orjson==3.10.15",

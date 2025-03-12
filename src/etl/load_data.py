@@ -1,6 +1,5 @@
 import polars as pl
 import xlsxwriter
-from src.transform import split_tables_sheet
 
 colors = {
             "zepto":{"text":"#f73563",
@@ -14,6 +13,20 @@ colors = {
 def write_db(data:pl.dataframe):
     data.write_database(table_name="test_listings",connection="sqlite:////home/avasireddi3/projects/saroj_analytics/test.db",
                         if_table_exists="append")
+
+def split_tables_sheet(data:pl.dataframe)->pl.dataframe:
+    dataframes = data.select(["platform",
+                   "timestamp",
+                   "search_term",
+                   "brand",
+                   "product_name",
+                   "mrp",
+                   "price",
+                   "unit",
+                   "ppu",
+                   "discount_pct"]).partition_by(["platform"])
+    for frame in dataframes:
+        yield frame
 
 def write_excel(data:pl.dataframe)->None:
     row_count = {}

@@ -10,6 +10,7 @@ from selenium_driverless import webdriver
 from selenium_driverless.scripts.network_interceptor import NetworkInterceptor, InterceptedRequest
 from rich import print
 from src.utils import try_extract, Listing, queries, locations, parse_weight
+from alive_progress import alive_bar
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -24,7 +25,7 @@ async def on_request(data:InterceptedRequest):
             print("no auth header found in request")
 
 async def get_auth():
-    logger.info("Starting request for headers")
+    logger.debug("Starting request for blinkit headers")
     options = webdriver.ChromeOptions()
     options.add_argument("--window-size=1920,1080")
     options.add_argument("--no-sandbox")
@@ -37,7 +38,7 @@ async def get_auth():
             await driver.sleep(2)
 
 def get_response(query:str,location:dict)->requests.models.Response:
-    logger.info("Getting response")
+    logger.debug("Getting response")
     scraper = cloudscraper.create_scraper()
     auth["lat"] = location["lat"]
     auth["lon"] = location["lon"]
@@ -55,7 +56,7 @@ def get_response(query:str,location:dict)->requests.models.Response:
     return resp
 
 def extract_data(data:dict,query:str, loc:str)->Listing:
-    logger.info("Extracting data")
+    logger.debug("Extracting data")
     for i,listing in enumerate(data["products"]):
         mrp = try_extract(listing,"mrp",0)
         price = try_extract(listing,"price",0)
@@ -83,19 +84,25 @@ def extract_data(data:dict,query:str, loc:str)->Listing:
         yield curr.model_dump()
 
 def scrape_blinkit():
-    logger.info('Starting blinkit scraper')
-    asyncio.run(get_auth())
-    logger.info('Headers in place')
-    for location in locations:
-        for query in queries:
-            items = []
-            resp = get_response(query, location)
-            data = json.loads(resp.text)
-            for item in extract_data(data,query,location["name"]):
-                items.append(item)
-            time.sleep(0.5)
-            logger.info(f"Recieved listings for {query} in {location["name"]}")
-            yield items
+    with alive_bar(unknown="waves") as bar:
+        logger.info('Starting blinkit scraper')
+        bar()
+        asyncio.run(get_auth())
+        logger.info("Initialized blinkit scraper")
+    logger.debug('Headers in place')
+    cnt=0
+    with alive_bar(total = len(locations)*len(queries),bar="classic") as bar:
+        for location in locations:
+            for query in queries:
+                items = []
+                resp = get_response(query, location)
+                data = json.loads(resp.text)
+                for item in extract_data(data,query,location["name"]):
+                    items.append(item)
+                time.sleep(0.5)
+                bar()
+                logger.debug(f"Recieved listings for {query} in {location["name"]}")
+                yield items
 
 if __name__ == '__main__':
     scrape_blinkit()

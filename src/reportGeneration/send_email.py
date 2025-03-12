@@ -2,6 +2,8 @@ import smtplib
 import os
 import mimetypes
 from email.message import EmailMessage
+from fileinput import filename
+
 from src.credentials import gmail_user,gmail_password
 
 EMAIL_ADDRESS = gmail_user
@@ -9,9 +11,9 @@ EMAIL_PASSWORD = gmail_password
 
 def send_mail():
     msg = EmailMessage()
-    msg['Subject'] = 'Daily report'
+    msg['Subject'] = "Daily Ecommerce Report Test"
     msg['From'] = EMAIL_ADDRESS
-    msg['To'] = "avasireddi3@gmail.com"
+    msg['To'] = ["rohith@vijayfoods.com","aditya.vasireddi@gmail.com"]
     msg.set_content('Please find attached the report')
     filepaths=["demo_files/test_report.xlsx","demo_files/test.pdf"]
     for filepath in filepaths:
@@ -23,7 +25,10 @@ def send_mail():
             # use a generic bag-of-bits type.
             ctype = 'application/octet-stream'
         maintype, subtype = ctype.split('/', 1)
-        msg.add_attachment(file_data, maintype=maintype, subtype=subtype)
+        msg.add_attachment(file_data,
+                           maintype=maintype,
+                           subtype=subtype,
+                           filename=filepath.split("/")[1])
 
     with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
         smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
