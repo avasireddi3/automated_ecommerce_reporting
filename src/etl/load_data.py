@@ -4,7 +4,7 @@ from src.config import uri, table_name, xlsx_file_name, colors_hex
 
 
 
-def write_db(data:pl.dataframe):
+def write_db(data:pl.dataframe)->None:
     data.write_database(table_name=table_name,connection=uri,
                         if_table_exists="append")
 

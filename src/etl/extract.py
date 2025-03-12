@@ -6,7 +6,7 @@ import logging
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-def generate_csv():
+def generate_csv()->None:
     with open('demo_files/test.csv','w',newline='') as csvfile:
         fieldnames = Listing.model_fields.keys()
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)

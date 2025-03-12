@@ -1,15 +1,18 @@
 import json
 import time
 import orjson
+import requests
 import urllib3
 import asyncio
 import datetime
 import logging
-from typing import Iterator
+from collections.abc import Iterator
 from selenium_driverless import webdriver
 from selenium_driverless.scripts.network_interceptor import NetworkInterceptor, InterceptedRequest
 from rich import print
 from alive_progress import alive_bar
+from urllib3 import BaseHTTPResponse
+
 from src.config import unknown_bar, auto_bar
 from src.utils import try_extract, Listing, queries, locations
 
@@ -17,7 +20,7 @@ from src.utils import try_extract, Listing, queries, locations
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-async def on_request(data:InterceptedRequest):
+async def on_request(data:InterceptedRequest)->None:
     if "api/v3/search" in data.request.url and data.request.method=="POST":
         global auth
         try:
@@ -25,7 +28,7 @@ async def on_request(data:InterceptedRequest):
         except KeyError:
             print("no auth header found in request")
 
-async def get_auth():
+async def get_auth()->None:
     logger.debug("Starting request for headers")
     options = webdriver.ChromeOptions()
     options.add_argument("--window-size=1920,1080")
@@ -38,7 +41,7 @@ async def get_auth():
             await driver.get("https://www.zeptonow.com/search?query=idli+rava")
             await driver.sleep(1)
 
-def get_response(query:str,location:str):
+def get_response(query:str,location:str)-> BaseHTTPResponse:
     logger.debug("Getting response")
     auth["user-agent"] = "Mozilla/5.0(Linux; U; Android 2.2; en-gb; LG-P500 Build/FRF91) AppleWebKit/533.0 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1"
     auth["storeId"] = location

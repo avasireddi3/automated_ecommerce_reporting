@@ -60,7 +60,7 @@ def split_tables_report(data:pl.dataframe)->pl.dataframe:
     for frame in dataframes:
         yield frame
 
-def create_report(frames:list[pl.dataframe]):
+def create_report(frames:list[pl.dataframe])->None:
     pdf = PricingReport()
     if margin_border:
         bg_image = Image.open("./assets/report_bg.jpg")

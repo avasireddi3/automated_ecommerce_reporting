@@ -6,7 +6,7 @@ import time
 import requests.models
 import datetime
 import logging
-from typing import Iterator
+from collections.abc import Iterator
 from selenium_driverless import webdriver
 from selenium_driverless.scripts.network_interceptor import NetworkInterceptor, InterceptedRequest
 from rich import print
@@ -17,7 +17,7 @@ from src.config import auto_bar,unknown_bar
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-async def on_request(data:InterceptedRequest):
+async def on_request(data:InterceptedRequest)->None:
     if "search" in data.request.url and data.request.method=="GET":
         global auth
         try:
@@ -26,7 +26,7 @@ async def on_request(data:InterceptedRequest):
         except KeyError:
             print("no auth header found in request")
 
-async def get_auth():
+async def get_auth()->None:
     logger.debug("Starting request for blinkit headers")
     options = webdriver.ChromeOptions()
     options.add_argument("--window-size=1920,1080")

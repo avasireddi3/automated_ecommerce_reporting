@@ -7,7 +7,7 @@ from src.credentials import gmail_user,gmail_password
 EMAIL_ADDRESS = gmail_user
 EMAIL_PASSWORD = gmail_password
 
-def send_mail():
+def send_mail()->None:
     msg = EmailMessage()
     msg['Subject'] = "Daily Ecommerce Report Test"
     msg['From'] = EMAIL_ADDRESS
