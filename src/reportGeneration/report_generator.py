@@ -47,6 +47,7 @@ class PricingReport(FPDF):
 
 
 def split_tables_report(data:pl.dataframe)->pl.dataframe:
+    """split data into tables by search query and platform for pdf report"""
     dataframes = data.select(["platform",
                    "timestamp",
                    "search_term",
@@ -61,6 +62,7 @@ def split_tables_report(data:pl.dataframe)->pl.dataframe:
         yield frame
 
 def create_report(frames:list[pl.dataframe])->None:
+    """generate report using PricingReport class"""
     pdf = PricingReport()
     if margin_border:
         bg_image = Image.open("./assets/report_bg.jpg")
@@ -74,7 +76,5 @@ def create_report(frames:list[pl.dataframe])->None:
         pdf.insert_table(frame)
         pdf.ln()
         pdf.ln()
-
-
     pdf.output(f'demo_files/{pdf_name}.pdf')
 

@@ -1,10 +1,12 @@
 def try_extract(obj:dict,field:str,default):
+    """try clause for extracting a field from response.json"""
     try:
         return obj[field]
     except KeyError or TypeError:
         return default
 
 def parse_weight(quantity:str)->int:
+    """parse_weight from string for blinkit responses"""
     try:
         (weight,unit) = quantity.split()
         if unit=="g":

@@ -8,6 +8,7 @@ EMAIL_ADDRESS = gmail_user
 EMAIL_PASSWORD = gmail_password
 
 def send_mail()->None:
+    """send automated email"""
     msg = EmailMessage()
     msg['Subject'] = "Daily Ecommerce Report Test"
     msg['From'] = EMAIL_ADDRESS
