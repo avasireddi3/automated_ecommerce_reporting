@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 async def on_request(data:InterceptedRequest)->None:
+    """setting global variable auth with intercepted network request"""
     if "search" in data.request.url and data.request.method=="GET":
         global auth
         try:
@@ -27,6 +28,7 @@ async def on_request(data:InterceptedRequest)->None:
             print("no auth header found in request")
 
 async def get_auth()->None:
+    """getting fresh headers for a search session"""
     logger.debug("Starting request for blinkit headers")
     options = webdriver.ChromeOptions()
     options.add_argument("--window-size=1920,1080")
@@ -40,6 +42,7 @@ async def get_auth()->None:
             await driver.sleep(2)
 
 def get_response(query:str,location:dict)->requests.models.Response:
+    """"getting response from backend api for a given query and response"""
     logger.debug("Getting response")
     scraper = cloudscraper.create_scraper()
     auth["lat"] = location["lat"]
@@ -58,6 +61,7 @@ def get_response(query:str,location:dict)->requests.models.Response:
     return resp
 
 def extract_data(data:dict,query:str, loc:str)->Iterator[dict]:
+    """extract data from response that is passed in the form of a dictionary"""
     logger.debug("Extracting data")
     for i,listing in enumerate(data["products"]):
         mrp = try_extract(listing,"mrp",0)
@@ -86,6 +90,7 @@ def extract_data(data:dict,query:str, loc:str)->Iterator[dict]:
         yield curr.model_dump()
 
 def scrape_blinkit()->Iterator[list]:
+    """create new session and scrape for queries and location given in utils.constants.py"""
     with alive_bar(unknown=unknown_bar) as bar:
         logger.info('Starting blinkit scraper')
         bar()
