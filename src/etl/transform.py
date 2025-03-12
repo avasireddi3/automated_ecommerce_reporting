@@ -1,5 +1,6 @@
 import polars as pl
 import polars_ds as pds
+from src.config import similarity_threshold
 
 
 def filter_clean()->pl.dataframe:
@@ -17,7 +18,7 @@ def filter_clean()->pl.dataframe:
         similarity = pds.str_fuzz("search_term","product_name")
     )
     data = data.filter(
-        pl.col("similarity")>0.45
+        pl.col("similarity")>similarity_threshold
     )
     return data
 

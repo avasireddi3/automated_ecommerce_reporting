@@ -1,9 +1,7 @@
 import smtplib
-import os
 import mimetypes
 from email.message import EmailMessage
-from fileinput import filename
-
+from src.config import pdf_name, xlsx_file_name, msg_content,to
 from src.credentials import gmail_user,gmail_password
 
 EMAIL_ADDRESS = gmail_user
@@ -13,9 +11,9 @@ def send_mail():
     msg = EmailMessage()
     msg['Subject'] = "Daily Ecommerce Report Test"
     msg['From'] = EMAIL_ADDRESS
-    msg['To'] = ["rohith@vijayfoods.com","aditya.vasireddi@gmail.com"]
-    msg.set_content('Please find attached the report')
-    filepaths=["demo_files/test_report.xlsx","demo_files/test.pdf"]
+    msg['To'] = to
+    msg.set_content(msg_content)
+    filepaths=[f"demo_files/{xlsx_file_name}.xlsx",f"demo_files/{pdf_name}.pdf"]
     for filepath in filepaths:
         with open(filepath,"rb") as f:
             file_data =  f.read()

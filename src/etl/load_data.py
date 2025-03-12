@@ -1,17 +1,11 @@
 import polars as pl
 import xlsxwriter
+from src.config import uri, table_name, xlsx_file_name, colors_hex
 
-colors = {
-            "zepto":{"text":"#f73563",
-                     "bg":"#390067"},
-            "instamart":{"text":"#f7f7f7",
-                         "bg":"#f74f00"},
-            "blinkit":{"text":"#2f8215",
-                       "bg":"#f0c544"}
-        }
+
 
 def write_db(data:pl.dataframe):
-    data.write_database(table_name="test_listings",connection="sqlite:////home/avasireddi3/projects/saroj_analytics/test.db",
+    data.write_database(table_name=table_name,connection=uri,
                         if_table_exists="append")
 
 def split_tables_sheet(data:pl.dataframe)->pl.dataframe:
@@ -30,7 +24,7 @@ def split_tables_sheet(data:pl.dataframe)->pl.dataframe:
 
 def write_excel(data:pl.dataframe)->None:
     row_count = {}
-    with xlsxwriter.Workbook("demo_files/test_report.xlsx") as f:
+    with xlsxwriter.Workbook(f"demo_files/{xlsx_file_name}.xlsx") as f:
         for frame in split_tables_sheet(data):
             sheet = frame["platform"].min()
             if sheet in row_count:
@@ -40,9 +34,9 @@ def write_excel(data:pl.dataframe)->None:
                 position = "A1"
                 row_count[sheet] = frame.shape[0] + 3
             header_format = {
-                "font_color" : colors[sheet]["text"],
+                "font_color" : colors_hex[sheet]["text"],
                 "bold":True,
-                "bg_color":colors[sheet]["bg"]
+                "bg_color":colors_hex[sheet]["bg"]
             }
             frame.write_excel(f, sheet,
                               position=position,

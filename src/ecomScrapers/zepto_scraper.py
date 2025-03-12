@@ -5,11 +5,14 @@ import urllib3
 import asyncio
 import datetime
 import logging
+from typing import Iterator
 from selenium_driverless import webdriver
 from selenium_driverless.scripts.network_interceptor import NetworkInterceptor, InterceptedRequest
 from rich import print
-from src.utils import try_extract, Listing, queries, locations
 from alive_progress import alive_bar
+from src.config import unknown_bar, auto_bar
+from src.utils import try_extract, Listing, queries, locations
+
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -47,7 +50,7 @@ def get_response(query:str,location:str):
     resp = session.request("POST", "https://api.zeptonow.com/api/v3/search", headers=auth, body=payload)
     return resp
 
-def extract_data(data:dict,query:str,loc:str)->dict:
+def extract_data(data:dict,query:str,loc:str)->Iterator[dict]:
     logger.debug("Extracting data")
     for grid in data["layout"][1:-1]:
         for item in grid["data"]["resolver"]["data"]["items"]:
@@ -86,14 +89,14 @@ def extract_data(data:dict,query:str,loc:str)->dict:
             )
             yield curr.model_dump()
 
-def scrape_zepto():
-    with alive_bar(unknown="waves") as bar:
+def scrape_zepto()->Iterator[list]:
+    with alive_bar(unknown=unknown_bar) as bar:
         bar()
         logger.info('Starting zepto scraper')
         asyncio.run(get_auth())
         logger.info("Initialized zepto scraper")
     logger.debug('Headers in place')
-    with alive_bar(total=len(locations) * len(queries),bar="classic") as bar:
+    with alive_bar(total=len(locations) * len(queries),bar=auto_bar) as bar:
         for location in locations:
             for query in queries:
                 items = []

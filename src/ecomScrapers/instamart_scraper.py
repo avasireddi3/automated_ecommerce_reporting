@@ -6,11 +6,14 @@ import urllib3
 import asyncio
 import datetime
 import logging
+from typing import Iterator
 from selenium_driverless import webdriver
 from selenium_driverless.scripts.network_interceptor import NetworkInterceptor, InterceptedRequest
 from rich import print
+from src.config import unknown_bar, auto_bar
 from src.utils import try_extract, Listing, queries, locations
 from alive_progress import alive_bar
+
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -67,7 +70,7 @@ def get_response(query:str,location:str)->urllib3.response:
     resp = session.request("POST", url=complete_url, headers=auth, body=payload)
     return resp
 
-def extract_data(data:dict, query:str, loc:str)->Listing:
+def extract_data(data:dict, query:str, loc:str)->Iterator[dict]:
     logger.debug("Extracting data")
     for i,item in enumerate(data["data"]["widgets"][0]["data"]):
         product = item["variations"][0]
@@ -102,14 +105,14 @@ def extract_data(data:dict, query:str, loc:str)->Listing:
         )
         yield curr.model_dump()
 
-def scrape_instamart():
-    with alive_bar(unknown="waves") as bar:
+def scrape_instamart()->Iterator[list]:
+    with alive_bar(unknown=unknown_bar) as bar:
         bar()
         logger.info('Starting instamart scraper')
         asyncio.run(get_auth())
         logger.info("Initialized instamart scraper")
     logger.debug('Headers in place')
-    with alive_bar(total = len(locations)*len(queries), bar="classic") as bar:
+    with alive_bar(total = len(locations)*len(queries), bar=auto_bar) as bar:
         for location in locations:
             for query in queries:
                 resp = get_response(query, location["instamart_id"])

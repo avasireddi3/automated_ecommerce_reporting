@@ -6,11 +6,13 @@ import time
 import requests.models
 import datetime
 import logging
+from typing import Iterator
 from selenium_driverless import webdriver
 from selenium_driverless.scripts.network_interceptor import NetworkInterceptor, InterceptedRequest
 from rich import print
-from src.utils import try_extract, Listing, queries, locations, parse_weight
 from alive_progress import alive_bar
+from src.utils import try_extract, Listing, queries, locations, parse_weight
+from src.config import auto_bar,unknown_bar
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -55,7 +57,7 @@ def get_response(query:str,location:dict)->requests.models.Response:
                        headers=auth)
     return resp
 
-def extract_data(data:dict,query:str, loc:str)->Listing:
+def extract_data(data:dict,query:str, loc:str)->Iterator[dict]:
     logger.debug("Extracting data")
     for i,listing in enumerate(data["products"]):
         mrp = try_extract(listing,"mrp",0)
@@ -83,15 +85,15 @@ def extract_data(data:dict,query:str, loc:str)->Listing:
         )
         yield curr.model_dump()
 
-def scrape_blinkit():
-    with alive_bar(unknown="waves") as bar:
+def scrape_blinkit()->Iterator[list]:
+    with alive_bar(unknown=unknown_bar) as bar:
         logger.info('Starting blinkit scraper')
         bar()
         asyncio.run(get_auth())
         logger.info("Initialized blinkit scraper")
     logger.debug('Headers in place')
     cnt=0
-    with alive_bar(total = len(locations)*len(queries),bar="classic") as bar:
+    with alive_bar(total = len(locations)*len(queries),bar=auto_bar) as bar:
         for location in locations:
             for query in queries:
                 items = []

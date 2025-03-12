@@ -3,13 +3,19 @@ from fpdf.fonts import FontFace
 import polars as pl
 from PIL import Image
 
+from src.config import (colors_rgb, report_title, title_font, title_font_size,
+                        report_margins, margin_border,
+                        table_font, table_font_size,
+                        pdf_name)
+
+
 class PricingReport(FPDF):
     def header(self):
         #Logo
         self.image('assets/vijay_brand.jpg',175,5,25)
-        self.set_font("Helvetica","B", 18)
+        self.set_font(title_font,"B", title_font_size)
         self.set_x(90)
-        self.cell(30,10,'Vijay Ecommerce Pricing Report', 0,align='C')
+        self.cell(30,10,report_title, 0,align='C')
         self.set_y(45)
 
     def footer(self):
@@ -20,15 +26,8 @@ class PricingReport(FPDF):
     def insert_table(self,df:pl.dataframe):
         platform = df["platform"].min()
         data = df.to_numpy()
-        self.set_font('Helvetica', '', 7)
-        colors = {
-            "zepto":{"text":(247,53,99),
-                     "bg":(57,0,103)},
-            "instamart":{"text":(247,247,247),
-                         "bg":(247,79,0)},
-            "blinkit":{"text":(47,130,21),
-                       "bg":(240,197,68)}
-        }
+        self.set_font(table_font, '', table_font_size)
+        colors = colors_rgb
         col_widths=(6,10,9,13,20,5,5,5,5,5)
         text_align = ("Left","Left","Left","Left","Left",
                       "Center","Center","Center","Center","Center")
@@ -63,10 +62,11 @@ def split_tables_report(data:pl.dataframe)->pl.dataframe:
 
 def create_report(frames:list[pl.dataframe]):
     pdf = PricingReport()
-    bg_image = Image.open("./assets/report_bg.jpg")
-    pdf.set_page_background(bg_image)
+    if margin_border:
+        bg_image = Image.open("./assets/report_bg.jpg")
+        pdf.set_page_background(bg_image)
     pdf.set_auto_page_break(auto=True)
-    pdf.set_margin(15)
+    pdf.set_margin(report_margins)
     pdf.alias_nb_pages()
     pdf.add_page()
     pdf.set_font('Helvetica', '', 12)
@@ -76,5 +76,5 @@ def create_report(frames:list[pl.dataframe]):
         pdf.ln()
 
 
-    pdf.output('demo_files/test.pdf')
+    pdf.output(f'demo_files/{pdf_name}.pdf')
 
