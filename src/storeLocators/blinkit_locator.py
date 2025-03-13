@@ -5,6 +5,7 @@ import urllib
 from selenium_driverless import webdriver
 from selenium_driverless.scripts.network_interceptor import NetworkInterceptor, InterceptedRequest
 from src.utils.data_models import Location
+from src.storeLocators.find_locality import get_locality
 
 async def on_request(data:InterceptedRequest)->None:
     """setting global variable auth with intercepted network request"""
@@ -42,7 +43,7 @@ def get_blinkit_store(lat:float,long:float)->dict[str,any]:
     resp = scraper.get(url=complete_url,headers=auth)
     data = json.loads(resp.text)
     store_id = str(data["analytics_properties"]["merchant_id"])
-    locality = "null"
+    locality = get_locality(lat,long)
     latitude = data["analytics_properties"]["latitude"]
     longitude = data["analytics_properties"]["longitude"]
     curr = Location(
@@ -56,7 +57,7 @@ def get_blinkit_store(lat:float,long:float)->dict[str,any]:
 
 
 def main():
-    print(get_blinkit_store(13.014269582274796,77.639510234551))
+    print(get_blinkit_store(13.043437, 77.615263))
 
 
 if __name__=="__main__":

@@ -1,11 +1,8 @@
 import json
 import urllib3
-import traceback
 import asyncio
 from selenium_driverless import webdriver
 from selenium_driverless.scripts.network_interceptor import NetworkInterceptor, InterceptedRequest
-from src.utils.data_models import Location
-from src.storeLocators.find_locality import get_locality
 
 async def on_request(data:InterceptedRequest)->None:
     """setting global variable auth with intercepted network request"""
@@ -29,43 +26,22 @@ async def get_auth(url:str)->None:
             await driver.get(url)
             await driver.sleep(2)
 
-def get_zepto_store(lat:float,long:float)->dict[str,any]:
+def get_locality(lat:float,long:float):
     asyncio.run(get_auth("https://www.zepto.com/"))
-    print(auth)
-    params = {"latitude": str(lat), "longitude": str(long), "page_type": "HOME", "version": "v2",
-                   "show_new_eta_banner": "false", "page_size": "1", "enforce_platform_type": "DESKTOP"}
+    querystring = {"latitude": str(lat), "longitude": str(long)}
     session = urllib3.PoolManager()
-    resp_store = session.request("GET",url="https://api.zepto.com/api/v2/get_page", headers=auth, fields=params)
+    resp_geo = session.request("GET", "https://api.zepto.com/api/v1/maps/geocode", headers=auth, fields=querystring)
     try:
-        data = json.loads(resp_store.data)
+        geo_data = json.loads(resp_geo.data)
     except json.decoder.JSONDecodeError:
-        data = None
+        geo_data = None
     try:
-        store_id = data["storeServiceableResponse"]["storeId"]
+        locality=""
+        for level in geo_data["results"][0]["address_components"]:
+            if "sublocality_level_1" in level["types"]:
+                locality = level["long_name"]
     except KeyError:
-        print(traceback.format_exc())
-        store_id = None
+        locality = None
     except TypeError:
-        print(traceback.format_exc())
-        store_id = None
-
-    locality = get_locality(lat,long)
-
-    if store_id and locality:
-        curr = Location(
-            store_id=store_id,
-            locality=locality,
-            latitude=lat,
-            longitude=long
-        )
-        return curr.model_dump()
-
-def main():
-
-    print(get_zepto_store(13.014269582274796,77.639510234551))
-
-
-
-
-if __name__=="__main__":
-    main()
+        locality = None
+    return locality

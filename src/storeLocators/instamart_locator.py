@@ -70,7 +70,7 @@ def get_instamart_store(lat:float,long:float)->dict[str,any]:
         pass
 
 def main():
-    print(get_instamart_store(13.014269582274796,77.639510234551))
+    print(get_instamart_store(13.043437, 77.615263))
 
 
 if __name__=="__main__":
