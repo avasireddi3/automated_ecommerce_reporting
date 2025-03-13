@@ -15,3 +15,8 @@ class Listing(BaseModel):
     ad: bool
     rank: int
 
+class Location(BaseModel):
+    store_id: str
+    locality: str
+    longitude: float
+    latitude: float

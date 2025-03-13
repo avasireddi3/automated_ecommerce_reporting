@@ -112,7 +112,13 @@ def scrape_blinkit()->Iterator[list]:
                 yield items
 
 if __name__ == '__main__':
-    scrape_blinkit()
+    asyncio.run(get_auth())
+    scraper = cloudscraper.create_scraper()
+    base_url = "https://blinkit.com/v2/services/secondary-data"
+    resp = scraper.get(url=base_url, headers=auth)
+    print(resp.text)
+
+
 
 
 

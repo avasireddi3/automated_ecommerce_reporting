@@ -55,3 +55,14 @@ pdf_name="test"
 to = ["rohith@vijayfoods.com","aditya.vasireddi@gmail.com"]
 #message content
 msg_content = """Please find attached the report"""
+
+#STORE LOCATOR
+# max_lat = 13.176
+# min_lat = 12.745
+# min_long = 77.372
+# max_long= 77.869
+max_lat = 13.200
+min_lat = 12.800
+min_long = 77.400
+max_long = 77.800
+grid_detail = 15
