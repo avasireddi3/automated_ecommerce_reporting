@@ -42,16 +42,15 @@ def get_zepto_store(lat:float,long:float,headers:dict)->dict[str,any]:
     try:
         store_id = data["storeServiceableResponse"]["storeId"]
     except KeyError:
-        print(traceback.format_exc())
         store_id = None
     except TypeError:
-        print(traceback.format_exc())
         store_id = None
 
-    locality = get_locality(lat,long)
+    locality = get_locality(lat,long,headers)
 
     if store_id and locality:
         curr = Location(
+            platform="zepto",
             store_id=store_id,
             locality=locality,
             latitude=lat,

@@ -24,6 +24,7 @@ def get_blinkit_store(lat:float,long:float,headers:dict)->dict[str,any]:
     latitude = data["analytics_properties"]["latitude"]
     longitude = data["analytics_properties"]["longitude"]
     curr = Location(
+        platform="blinkit",
         store_id=store_id,
         locality=locality,
         latitude=latitude,

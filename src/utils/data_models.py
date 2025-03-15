@@ -16,6 +16,7 @@ class Listing(BaseModel):
     rank: int
 
 class Location(BaseModel):
+    platform: str
     store_id: str
     locality: str
     longitude: float

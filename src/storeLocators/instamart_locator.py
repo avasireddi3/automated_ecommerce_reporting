@@ -28,6 +28,7 @@ def get_instamart_store(lat:float,long:float,headers:dict)->dict[str,any]:
         locality = store_details["locality"]
         lat_long = store_details["lat_long"].split(",")
         curr= Location(
+            platform="instamart",
             store_id=store_id,
             locality=locality,
             latitude=lat_long[0],
