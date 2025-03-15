@@ -1,6 +1,7 @@
 import json
 import urllib3
 import asyncio
+import traceback
 from selenium_driverless import webdriver
 from selenium_driverless.scripts.network_interceptor import NetworkInterceptor, InterceptedRequest
 
@@ -31,6 +32,8 @@ def get_locality(lat:float,long:float):
     querystring = {"latitude": str(lat), "longitude": str(long)}
     session = urllib3.PoolManager()
     resp_geo = session.request("GET", "https://api.zepto.com/api/v1/maps/geocode", headers=auth, fields=querystring)
+    locality_1=None
+    locality_2=None
     try:
         geo_data = json.loads(resp_geo.data)
     except json.decoder.JSONDecodeError:
@@ -39,9 +42,21 @@ def get_locality(lat:float,long:float):
         locality=""
         for level in geo_data["results"][0]["address_components"]:
             if "sublocality_level_1" in level["types"]:
-                locality = level["long_name"]
+                locality_1 = level["long_name"]
+            if "sublocality_level_2" in level["types"]:
+                locality_2 = level["long_name"]
     except KeyError:
-        locality = None
+        traceback.print_exc()
+        locality_1 = None
+        locality_2 = None
     except TypeError:
-        locality = None
+        traceback.print_exc()
+        locality_1 = None
+        locality_2 = None
+    if locality_1:
+        locality = locality_1
+    elif locality_2:
+        locality = locality_2
+    else:
+        locality = ""
     return locality
