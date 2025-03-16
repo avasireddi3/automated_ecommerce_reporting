@@ -19,18 +19,24 @@ def get_blinkit_store(lat:float,long:float,headers:dict)->dict[str,any]:
     resp = scraper.get(url=complete_url,headers=headers)
     data = json.loads(resp.text)
     # print(json.dumps(data,indent=2))
-    store_id = str(data["analytics_properties"]["merchant_id"])
-    locality = get_locality(lat,long)
-    latitude = data["analytics_properties"]["latitude"]
-    longitude = data["analytics_properties"]["longitude"]
-    curr = Location(
-        platform="blinkit",
-        store_id=store_id,
-        locality=locality,
-        latitude=latitude,
-        longitude=longitude
-    )
-    return curr
+    try:
+        store_id = str(data["analytics_properties"]["merchant_id"])
+        locality = ""
+        latitude = data["analytics_properties"]["latitude"]
+        longitude = data["analytics_properties"]["longitude"]
+        curr = Location(
+            platform="blinkit",
+            store_id=store_id,
+            locality=locality,
+            latitude=latitude,
+            longitude=longitude
+        )
+        return curr.model_dump()
+    except KeyError:
+        pass
+    except TypeError:
+        pass
+
 
 
 

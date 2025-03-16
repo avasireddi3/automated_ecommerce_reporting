@@ -46,9 +46,9 @@ def get_zepto_store(lat:float,long:float,headers:dict)->dict[str,any]:
     except TypeError:
         store_id = None
 
-    locality = get_locality(lat,long,headers)
+    locality = ""
 
-    if store_id and locality:
+    if store_id:
         curr = Location(
             platform="zepto",
             store_id=store_id,
