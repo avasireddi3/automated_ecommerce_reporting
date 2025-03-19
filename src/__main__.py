@@ -1,5 +1,5 @@
 import logging
-from src.etl.extract import generate_csv
+from src.etl.extract import generate_csv, extract_listings
 from src.etl.load_data import write_db,write_excel,write_big_query
 from src.etl.transform import filter_clean
 from src.reportGeneration.report_generator import create_report, split_tables_report
@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 def main():
-    generate_csv()
+    extract_listings()
     data = filter_clean()
     logger.info("Cleaned and staged data")
     # write_db(data)

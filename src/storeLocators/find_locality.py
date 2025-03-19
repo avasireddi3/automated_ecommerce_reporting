@@ -49,6 +49,7 @@ def get_google_locality(lat:float,long:float):
         geo_data = None
     try:
         locality = ""
+        print(json.dumps(geo_data, indent=2))
         for level in geo_data["results"][0]["address_components"]:
             if "sublocality_level_1" in level["types"]:
                 locality_1 = level["long_name"]
@@ -75,4 +76,4 @@ def get_google_locality(lat:float,long:float):
     return locality
 
 if __name__=="__main__":
-    print(get_google_locality(13.063778, 77.504806))
+    print(get_google_locality(12.9035, 77.717))

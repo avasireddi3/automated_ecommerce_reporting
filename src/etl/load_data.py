@@ -50,7 +50,7 @@ def write_excel(data:pl.dataframe)->None:
                               hide_gridlines=False)
 
 def write_big_query(data:pl.dataframe)->None:
-    client = bigquery.Client()
+    client = bigquery.Client("turnkey-triumph-453704-e8")
     df = data.to_pandas(date_as_object=False)
     df["timestamp"] = pd.to_datetime(df["timestamp"])
     df["timestamp"] = df["timestamp"].dt.tz_localize("Asia/Kolkata")

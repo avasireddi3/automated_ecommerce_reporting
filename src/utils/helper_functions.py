@@ -1,5 +1,7 @@
 from selenium_driverless import webdriver
 from selenium_driverless.scripts.network_interceptor import NetworkInterceptor, InterceptedRequest
+from alive_progress import alive_bar
+from src.config import unknown_bar
 
 
 def try_extract(obj:dict,field:str,default):
@@ -40,7 +42,7 @@ async def get_auth(url:str,api_term:str,request_method:str)->dict:
     async with webdriver.Chrome(options=options) as driver:
         async with NetworkInterceptor(driver,on_request=on_request):
             await driver.get(url)
-            await driver.sleep(2)
+            await driver.sleep(0.5)
     return auth
 
 if __name__ == "__main__":

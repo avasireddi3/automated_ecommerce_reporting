@@ -5,6 +5,7 @@ class Listing(BaseModel):
     platform: str
     timestamp: datetime.datetime
     search_term: str
+    store_id: str
     location: str
     mrp: int
     price: int

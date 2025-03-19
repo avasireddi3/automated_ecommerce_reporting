@@ -18,8 +18,8 @@ def get_response(query:str,location:dict,auth:dict)->requests.models.Response:
     """"getting response from backend api for a given query and response"""
     logger.debug("Getting response")
     scraper = cloudscraper.create_scraper()
-    auth["lat"] = location["lat"]
-    auth["lon"] = location["lon"]
+    auth["lat"] = str(location["latitude"])
+    auth["lon"] = str(location["longitude"])
     params = {
         "start":"0",
         "size":"20",
@@ -33,7 +33,7 @@ def get_response(query:str,location:dict,auth:dict)->requests.models.Response:
                        headers=auth)
     return resp
 
-def extract_data(data:dict,query:str, loc:str)->Iterator[dict]:
+def extract_data(data:dict,query:str, store_id:str, loc:str)->Iterator[dict]:
     """extract data from response that is passed in the form of a dictionary"""
     logger.debug("Extracting data")
     for i,listing in enumerate(data["products"]):
@@ -52,6 +52,7 @@ def extract_data(data:dict,query:str, loc:str)->Iterator[dict]:
             platform="blinkit",
             timestamp=dt,
             search_term=query,
+            store_id=store_id,
             location=loc,
             mrp = mrp,
             price = price,
@@ -64,7 +65,7 @@ def extract_data(data:dict,query:str, loc:str)->Iterator[dict]:
         )
         yield curr.model_dump()
 
-def scrape_blinkit()->Iterator[list]:
+def scrape_blinkit(locations:list[dict])->Iterator[list]:
     """create new session and scrape for queries and location given in utils.constants.py"""
     with alive_bar(unknown=unknown_bar) as bar:
         logger.info('Starting blinkit scraper')
@@ -81,11 +82,11 @@ def scrape_blinkit()->Iterator[list]:
                 items = []
                 resp = get_response(query, location,headers)
                 data = json.loads(resp.text)
-                for item in extract_data(data,query,location["name"]):
+                for item in extract_data(data,query,location["store_id"],location["locality"]):
                     items.append(item)
                 time.sleep(0.5)
                 bar()
-                logger.debug(f"Recieved listings for {query} in {location["name"]}")
+                logger.debug(f"Recieved listings for {query} in {location["locality"]}")
                 yield items
 
 if __name__ == '__main__':

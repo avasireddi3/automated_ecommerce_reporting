@@ -5,16 +5,22 @@ import time
 import polars as pl
 import folium
 import asyncio
+import logging
 from alive_progress import alive_bar
-from src.config import min_lat, min_long, max_lat, max_long, grid_detail, auto_bar
+from src.config import min_lat, min_long, max_lat, max_long, grid_detail, auto_bar, unknown_bar
 from src.storeLocators.blinkit_locator import get_blinkit_store
 from src.storeLocators.find_locality import get_google_locality
 from src.utils.helper_functions import get_auth
 from src.storeLocators.instamart_locator import get_instamart_store
 from src.storeLocators.zepto_locator import get_zepto_store
+from google.cloud import bigquery
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 def get_locations_df(store_locators:list[dict])->pl.dataframe:
     locations = []
+    logger.info("Scanning Locations")
     with alive_bar(total=(grid_detail ** 2)*len(store_locators), bar=auto_bar, force_tty=True) as bar:
         for lat in np.linspace(min_lat, max_lat, grid_detail):
             for long in np.linspace(min_long, max_long, grid_detail):
@@ -31,6 +37,7 @@ def get_locations_df(store_locators:list[dict])->pl.dataframe:
                     bar()
                 time.sleep(0.5)
     df = pl.from_dicts(data=locations)
+    logger.info("Locations Scanned")
     return df
 
 def process_locations(df:pl.dataframe)->np.ndarray:
@@ -74,21 +81,35 @@ def plot_map(coords:np.ndarray,icon:str,file_name:str)->None:
                       icon=folium.Icon(color=color, icon=icon)).add_to(plot_map)
     plot_map.save(f'{file_name}.html')
 
-def main():
-    instamart_headers = asyncio.run(get_auth("https://www.swiggy.com/instamart",
-                                             api_term="api/instamart",
-                                             request_method="GET"))
-    zepto_headers = asyncio.run(get_auth("https://www.zepto.com/",
-                                api_term="api/v2/get_page",
-                                request_method="GET"))
-    blinkit_headers = asyncio.run(get_auth("https://blinkit.com",
-                                   api_term="v2/services/secondary-data",
-                                   request_method="GET"))
+def upload_database(df:pl.dataframe)->None:
+    client = bigquery.Client(project="turnkey-triumph-453704-e8")
+    df = df.to_pandas(date_as_object=False)
+    table_id = "turnkey-triumph-453704-e8.test_dataset_1.store_locations"
+    job = client.load_table_from_dataframe(df, table_id)
+    job.result()
+
+def scan_stores():
+
+    with alive_bar(total = 3, bar=auto_bar) as bar:
+        logger.info("Requesting Headers")
+        instamart_headers = asyncio.run(get_auth("https://www.swiggy.com/instamart",
+                                                 api_term="api/instamart",
+                                                 request_method="GET"))
+        bar()
+        zepto_headers = asyncio.run(get_auth("https://www.zepto.com/",
+                                    api_term="api/v2/get_page",
+                                    request_method="GET"))
+        bar()
+        blinkit_headers = asyncio.run(get_auth("https://blinkit.com",
+                                       api_term="v2/services/secondary-data",
+                                       request_method="GET"))
+        bar()
+        logger.info("Recieved Headers")
+
     store_locators = [
         {"locator":get_instamart_store,"headers":instamart_headers},
         {"locator": get_blinkit_store, "headers": blinkit_headers},
         {"locator": get_zepto_store, "headers": zepto_headers},
-
     ]
 
     df = get_locations_df(store_locators)
@@ -103,10 +124,12 @@ def main():
         "locality":pl.datatypes.String
     }
     df = pl.DataFrame(coords,schema=schema,orient="row")
+    upload_database(df)
     df.write_csv("store_locations.csv")
     plot_map(coords,"info","test_map")
 
 
 
+
 if __name__=="__main__":
-    main()
+    scan_stores()

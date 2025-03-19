@@ -28,7 +28,7 @@ def get_response(query:str,location:str,auth:dict)-> BaseHTTPResponse:
     resp = session.request("POST", "https://api.zeptonow.com/api/v3/search", headers=auth, body=payload)
     return resp
 
-def extract_data(data:dict,query:str,loc:str)->Iterator[dict]:
+def extract_data(data:dict,query:str,store_id:str,loc:str)->Iterator[dict]:
     """extract data from response that is passed in the form of a dictionary"""
     logger.debug("Extracting data")
     for grid in data["layout"][1:-1]:
@@ -37,10 +37,6 @@ def extract_data(data:dict,query:str,loc:str)->Iterator[dict]:
             mrp = int(try_extract(product,"mrp",0))//100
             price = int(try_extract(product,"sellingPrice",0))//100
             unit = try_extract(product["productVariant"],"weightInGms",0)
-            # try:
-            #     unit = str(try_extract(product["productVariant"], "weightInGms", "0")) + " g"
-            # except TypeError:
-            #     unit = try_extract(product["l4Attributes"], "weight", "0 kg")
             name = try_extract(product["product"],"name","None")
             brand = try_extract(product["product"],"brand","None")
             try:
@@ -58,6 +54,7 @@ def extract_data(data:dict,query:str,loc:str)->Iterator[dict]:
                 platform="zepto",
                 timestamp= dt,
                 search_term = query,
+                store_id=store_id,
                 location = loc,
                 mrp=mrp,
                 price=price,
@@ -70,7 +67,7 @@ def extract_data(data:dict,query:str,loc:str)->Iterator[dict]:
             )
             yield curr.model_dump()
 
-def scrape_zepto()->Iterator[list]:
+def scrape_zepto(locations:list[dict])->Iterator[list]:
     """create new session and scrape for queries and location given in utils.constants.py"""
     with alive_bar(unknown=unknown_bar) as bar:
         bar()
@@ -84,13 +81,13 @@ def scrape_zepto()->Iterator[list]:
         for location in locations:
             for query in queries:
                 items = []
-                resp = get_response(query, location["zepto_id"],headers)
+                resp = get_response(query,location["store_id"],headers)
                 data = json.loads(resp.data)
-                for item in extract_data(data,query,location["name"]):
+                for item in extract_data(data,query,location["store_id"],location["locality"]):
                     items.append(item)
                 time.sleep(0.5)
                 bar()
-                logger.debug(f"Recieved listings for {query} in {location["name"]}")
+                logger.debug(f"Recieved listings for {query} in {location["locality"]}")
                 yield items
 
 

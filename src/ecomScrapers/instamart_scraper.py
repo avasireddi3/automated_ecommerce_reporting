@@ -48,7 +48,7 @@ def get_response(query:str,location:str,auth:dict)->urllib3.response:
     resp = session.request("POST", url=complete_url, headers=auth, body=payload)
     return resp
 
-def extract_data(data:dict, query:str, loc:str)->Iterator[dict]:
+def extract_data(data:dict, query:str, store_id:str, loc:str)->Iterator[dict]:
     """extract data from response that is passed in the form of a dictionary"""
     logger.debug("Extracting data")
     for i,item in enumerate(data["data"]["widgets"][0]["data"]):
@@ -74,6 +74,7 @@ def extract_data(data:dict, query:str, loc:str)->Iterator[dict]:
             platform="instamart",
             timestamp= dt,
             search_term=query,
+            store_id=store_id,
             location=loc,
             mrp=mrp,
             price=price,
@@ -86,7 +87,7 @@ def extract_data(data:dict, query:str, loc:str)->Iterator[dict]:
         )
         yield curr.model_dump()
 
-def scrape_instamart()->Iterator[list]:
+def scrape_instamart(locations:list[dict])->Iterator[list]:
     """create new session and scrape for queries and location given in utils.constants.py"""
     with alive_bar(unknown=unknown_bar) as bar:
         bar()
@@ -99,14 +100,14 @@ def scrape_instamart()->Iterator[list]:
     with alive_bar(total = len(locations)*len(queries), bar=auto_bar) as bar:
         for location in locations:
             for query in queries:
-                resp = get_response(query, location["instamart_id"],headers)
+                resp = get_response(query, location["store_id"],headers)
                 data = json.loads(resp.data)
                 items = []
-                for item in extract_data(data,query,location["name"]):
+                for item in extract_data(data,query,location["store_id"],location["locality"]):
                     items.append(item)
                 time.sleep(0.5)
                 bar()
-                logger.debug(f"Recieved listings for {query} in {location["name"]}")
+                logger.debug(f"Recieved listings for {query} in {location["locality"]}")
                 yield items
 
 
