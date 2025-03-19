@@ -1,7 +1,9 @@
 import polars as pl
+import pandas as pd
 import xlsxwriter
 from src.config import uri, table_name, xlsx_file_name, colors_hex
-
+from google.cloud import bigquery
+import pyarrow as pa
 
 
 def write_db(data:pl.dataframe)->None:
@@ -46,3 +48,12 @@ def write_excel(data:pl.dataframe)->None:
                               autofit=True,
                               header_format=header_format,
                               hide_gridlines=False)
+
+def write_big_query(data:pl.dataframe)->None:
+    client = bigquery.Client()
+    df = data.to_pandas(date_as_object=False)
+    df["timestamp"] = pd.to_datetime(df["timestamp"])
+    df["timestamp"] = df["timestamp"].dt.tz_localize("Asia/Kolkata")
+    table_id = "turnkey-triumph-453704-e8.test_dataset_1.test_listings"
+    job = client.load_table_from_dataframe(df,table_id)
+    job.result()

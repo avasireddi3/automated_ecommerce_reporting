@@ -9,7 +9,6 @@ import logging
 from collections.abc import Iterator
 from selenium_driverless import webdriver
 from selenium_driverless.scripts.network_interceptor import NetworkInterceptor, InterceptedRequest
-from rich import print
 from alive_progress import alive_bar
 from urllib3 import BaseHTTPResponse
 
@@ -80,9 +79,11 @@ def extract_data(data:dict,query:str,loc:str)->Iterator[dict]:
             else:
                 ad = False
             rank = try_extract(item,"position",-1)
+            dt = datetime.datetime.now()
+            dt = datetime.datetime.strptime(str(dt).split(".")[0],"%Y-%m-%d %H:%M:%S")
             curr = Listing(
                 platform="zepto",
-                timestamp=datetime.datetime.now(),
+                timestamp= dt,
                 search_term = query,
                 location = loc,
                 mrp=mrp,

@@ -13,14 +13,15 @@ def filter_clean()->pl.dataframe:
     data = data.with_columns(
         product_name = pl.col("name").str.strip_prefix(pl.col("brand")),
         ppu = pl.col("price")/pl.col("unit"),
-        discount_pct = (((pl.col("mrp")-pl.col("price"))*100)/pl.col("mrp")).round(2)
+        discount_pct = (((pl.col("mrp")-pl.col("price"))*100)/pl.col("mrp")).round(2),
+        # timestamp = pl.col("timestamp").cast(pl.Datetime)
     )
     data = data.with_columns(
         similarity = pds.str_fuzz("search_term","product_name")
     )
-    data = data.filter(
-        pl.col("similarity")>similarity_threshold
-    )
+    # data = data.filter(
+    #     pl.col("similarity")>similarity_threshold
+    # )
     return data
 
 

@@ -9,7 +9,6 @@ import logging
 from collections.abc import Iterator
 from selenium_driverless import webdriver
 from selenium_driverless.scripts.network_interceptor import NetworkInterceptor, InterceptedRequest
-from rich import print
 from alive_progress import alive_bar
 from src.utils import try_extract, Listing, queries, locations, parse_weight
 from src.config import auto_bar,unknown_bar
@@ -73,9 +72,11 @@ def extract_data(data:dict,query:str, loc:str)->Iterator[dict]:
         cat = try_extract(listing, "type", "None")
         ad = try_extract(listing, "is_boosted",False)
         rank = i
+        dt = datetime.datetime.now()
+        dt = datetime.datetime.strptime(str(dt).split(".")[0], "%Y-%m-%d %H:%M:%S")
         curr = Listing(
             platform="blinkit",
-            timestamp=datetime.datetime.now(),
+            timestamp=dt,
             search_term=query,
             location=loc,
             mrp = mrp,

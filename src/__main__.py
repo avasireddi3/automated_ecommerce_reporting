@@ -1,6 +1,6 @@
 import logging
 from src.etl.extract import generate_csv
-from src.etl.load_data import write_db,write_excel
+from src.etl.load_data import write_db,write_excel,write_big_query
 from src.etl.transform import filter_clean
 from src.reportGeneration.report_generator import create_report, split_tables_report
 from src.reportGeneration.send_email import send_mail
@@ -12,7 +12,8 @@ def main():
     generate_csv()
     data = filter_clean()
     logger.info("Cleaned and staged data")
-    write_db(data)
+    # write_db(data)
+    write_big_query(data)
     logger.info("Updated database")
     write_excel(data)
     logger.info("Excel file generated")

@@ -9,7 +9,6 @@ import logging
 from collections.abc import Iterator
 from selenium_driverless import webdriver
 from selenium_driverless.scripts.network_interceptor import NetworkInterceptor, InterceptedRequest
-from rich import print
 from src.config import unknown_bar, auto_bar
 from src.utils import try_extract, Listing, queries, locations
 from alive_progress import alive_bar
@@ -93,9 +92,11 @@ def extract_data(data:dict, query:str, loc:str)->Iterator[dict]:
                 ad = False
         else:
             ad = False
+        dt = datetime.datetime.now()
+        dt = datetime.datetime.strptime(str(dt).split(".")[0], "%Y-%m-%d %H:%M:%S")
         curr = Listing(
             platform="instamart",
-            timestamp= datetime.datetime.now(),
+            timestamp= dt,
             search_term=query,
             location=loc,
             mrp=mrp,
