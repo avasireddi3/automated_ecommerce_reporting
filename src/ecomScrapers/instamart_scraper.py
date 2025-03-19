@@ -10,7 +10,7 @@ from collections.abc import Iterator
 from selenium_driverless import webdriver
 from selenium_driverless.scripts.network_interceptor import NetworkInterceptor, InterceptedRequest
 from src.config import unknown_bar, auto_bar
-from src.utils import try_extract, Listing, queries, locations
+from src.utils import try_extract, Listing, queries, locations,get_auth
 from alive_progress import alive_bar
 
 
@@ -18,32 +18,8 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 
-async def on_request(data:InterceptedRequest)->None:
-    """setting global variable auth with intercepted network request"""
-    if "api/instamart/search" in data.request.url and data.request.method=="POST":
-        global auth
-        try:
-            auth = data.request.headers
-        except KeyError:
-            print("no auth header found in request")
-
-async def get_auth()->None:
-    """getting fresh headers for a search session"""
-    logger.debug("Starting request for headers")
-    options = webdriver.ChromeOptions()
-    options.add_argument("--window-size=1920,1080")
-    options.add_argument("--window-size=1920,1080")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")  # Important for Docker
-    options.add_argument("--disable-gpu")
-    options.headless=True
-    async with webdriver.Chrome(options=options) as driver:
-        async with NetworkInterceptor(driver,on_request=on_request):
-            await driver.get("https://www.swiggy.com/instamart/search?custom_back=true&query=idli+rava")
-            await driver.sleep(2)
-
-def get_response(query:str,location:str)->urllib3.response:
-    """"getting response from backend api for a given query and response"""
+def get_response(query:str,location:str,auth:dict)->urllib3.response:
+    """"getting response from backend api for a given query,location and set of headers"""
     logger.debug("Getting response")
     params = {"pageNumber": "0",
               "searchResultsOffset": "0",
@@ -115,13 +91,15 @@ def scrape_instamart()->Iterator[list]:
     with alive_bar(unknown=unknown_bar) as bar:
         bar()
         logger.info('Starting instamart scraper')
-        asyncio.run(get_auth())
+        headers = asyncio.run(get_auth(url="https://www.swiggy.com/instamart/search?custom_back=true&query=idli+rava",
+                             api_term="api/instamart/search",
+                             request_method="POST"))
         logger.info("Initialized instamart scraper")
     logger.debug('Headers in place')
     with alive_bar(total = len(locations)*len(queries), bar=auto_bar) as bar:
         for location in locations:
             for query in queries:
-                resp = get_response(query, location["instamart_id"])
+                resp = get_response(query, location["instamart_id"],headers)
                 data = json.loads(resp.data)
                 items = []
                 for item in extract_data(data,query,location["name"]):
@@ -133,4 +111,6 @@ def scrape_instamart()->Iterator[list]:
 
 
 if __name__ == '__main__':
-    scrape_instamart()
+    for item in scrape_instamart():
+        for listing in item:
+            print(listing)

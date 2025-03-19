@@ -1,48 +1,21 @@
 import json
 import time
 import orjson
-import requests
 import urllib3
 import asyncio
 import datetime
 import logging
 from collections.abc import Iterator
-from selenium_driverless import webdriver
-from selenium_driverless.scripts.network_interceptor import NetworkInterceptor, InterceptedRequest
 from alive_progress import alive_bar
 from urllib3 import BaseHTTPResponse
-
 from src.config import unknown_bar, auto_bar
-from src.utils import try_extract, Listing, queries, locations
+from src.utils import try_extract, Listing, queries, locations, get_auth
 
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-async def on_request(data:InterceptedRequest)->None:
-    """setting global variable auth with intercepted network request"""
-    if "api/v3/search" in data.request.url and data.request.method=="POST":
-        global auth
-        try:
-            auth = data.request.headers
-        except KeyError:
-            print("no auth header found in request")
-
-async def get_auth()->None:
-    """getting fresh headers for a search session"""
-    logger.debug("Starting request for headers")
-    options = webdriver.ChromeOptions()
-    options.add_argument("--window-size=1920,1080")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")  # Important for Docker
-    options.add_argument("--disable-gpu")
-    options.headless = True
-    async with webdriver.Chrome(options=options) as driver:
-        async with NetworkInterceptor(driver,on_request=on_request):
-            await driver.get("https://www.zeptonow.com/search?query=idli+rava")
-            await driver.sleep(1)
-
-def get_response(query:str,location:str)-> BaseHTTPResponse:
+def get_response(query:str,location:str,auth:dict)-> BaseHTTPResponse:
     """"getting response from backend api for a given query and response"""
     logger.debug("Getting response")
     auth["user-agent"] = "Mozilla/5.0(Linux; U; Android 2.2; en-gb; LG-P500 Build/FRF91) AppleWebKit/533.0 (KHTML, like Gecko) Version/4.0 Mobile Safari/533.1"
@@ -102,14 +75,16 @@ def scrape_zepto()->Iterator[list]:
     with alive_bar(unknown=unknown_bar) as bar:
         bar()
         logger.info('Starting zepto scraper')
-        asyncio.run(get_auth())
+        headers = asyncio.run(get_auth(url="https://www.zeptonow.com/search?query=idli+rava",
+                             api_term="api/v3/search",
+                             request_method="POST"))
         logger.info("Initialized zepto scraper")
     logger.debug('Headers in place')
     with alive_bar(total=len(locations) * len(queries),bar=auto_bar) as bar:
         for location in locations:
             for query in queries:
                 items = []
-                resp = get_response(query, location["zepto_id"])
+                resp = get_response(query, location["zepto_id"],headers)
                 data = json.loads(resp.data)
                 for item in extract_data(data,query,location["name"]):
                     items.append(item)
@@ -121,7 +96,9 @@ def scrape_zepto()->Iterator[list]:
 
 
 if __name__ == '__main__':
-    scrape_zepto()
+    for item in scrape_zepto():
+        for listing in item:
+            print(listing)
 
 
 

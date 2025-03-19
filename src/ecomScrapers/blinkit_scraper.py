@@ -7,40 +7,14 @@ import requests.models
 import datetime
 import logging
 from collections.abc import Iterator
-from selenium_driverless import webdriver
-from selenium_driverless.scripts.network_interceptor import NetworkInterceptor, InterceptedRequest
 from alive_progress import alive_bar
-from src.utils import try_extract, Listing, queries, locations, parse_weight
+from src.utils import try_extract, Listing, queries, locations, parse_weight, get_auth
 from src.config import auto_bar,unknown_bar
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-async def on_request(data:InterceptedRequest)->None:
-    """setting global variable auth with intercepted network request"""
-    if "search" in data.request.url and data.request.method=="GET":
-        global auth
-        try:
-            if data.request.headers["auth_key"]:
-                auth = data.request.headers
-        except KeyError:
-            print("no auth header found in request")
-
-async def get_auth()->None:
-    """getting fresh headers for a search session"""
-    logger.debug("Starting request for blinkit headers")
-    options = webdriver.ChromeOptions()
-    options.add_argument("--window-size=1920,1080")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")  # Important for Docker
-    options.add_argument("--disable-gpu")
-    options.headless = True
-    async with webdriver.Chrome(options=options) as driver:
-        async with NetworkInterceptor(driver,on_request=on_request):
-            await driver.get("https://blinkit.com/s/?q=idli%20rava")
-            await driver.sleep(2)
-
-def get_response(query:str,location:dict)->requests.models.Response:
+def get_response(query:str,location:dict,auth:dict)->requests.models.Response:
     """"getting response from backend api for a given query and response"""
     logger.debug("Getting response")
     scraper = cloudscraper.create_scraper()
@@ -95,7 +69,9 @@ def scrape_blinkit()->Iterator[list]:
     with alive_bar(unknown=unknown_bar) as bar:
         logger.info('Starting blinkit scraper')
         bar()
-        asyncio.run(get_auth())
+        headers = asyncio.run(get_auth(url="https://blinkit.com/s/?q=idli%20rava",
+                                       api_term="search",
+                                       request_method="GET"))
         logger.info("Initialized blinkit scraper")
     logger.debug('Headers in place')
     cnt=0
@@ -103,7 +79,7 @@ def scrape_blinkit()->Iterator[list]:
         for location in locations:
             for query in queries:
                 items = []
-                resp = get_response(query, location)
+                resp = get_response(query, location,headers)
                 data = json.loads(resp.text)
                 for item in extract_data(data,query,location["name"]):
                     items.append(item)
@@ -113,11 +89,8 @@ def scrape_blinkit()->Iterator[list]:
                 yield items
 
 if __name__ == '__main__':
-    asyncio.run(get_auth())
-    scraper = cloudscraper.create_scraper()
-    base_url = "https://blinkit.com/v2/services/secondary-data"
-    resp = scraper.get(url=base_url, headers=auth)
-    print(resp.text)
+    for item in scrape_blinkit():
+        print(item)
 
 
 
