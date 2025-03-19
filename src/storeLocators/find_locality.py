@@ -1,9 +1,6 @@
 import json
 import urllib3
-import asyncio
 import traceback
-from selenium_driverless import webdriver
-from selenium_driverless.scripts.network_interceptor import NetworkInterceptor, InterceptedRequest
 from src.credentials import gmaps_api_key
 def get_locality(lat:float,long:float,headers:dict):
     querystring = {"latitude": str(lat), "longitude": str(long)}
@@ -47,6 +44,7 @@ def get_google_locality(lat:float,long:float):
     locality_2 = None
     try:
         geo_data = json.loads(resp_geo.data)
+
     except json.decoder.JSONDecodeError:
         geo_data = None
     try:
@@ -57,13 +55,17 @@ def get_google_locality(lat:float,long:float):
             if "sublocality_level_2" in level["types"]:
                 locality_2 = level["long_name"]
     except KeyError:
+        print(json.dumps(geo_data,indent=2))
         traceback.print_exc()
         locality_1 = None
         locality_2 = None
     except TypeError:
+        print(json.dumps(geo_data, indent=2))
         traceback.print_exc()
         locality_1 = None
         locality_2 = None
+    except IndexError:
+        print(json.dumps(geo_data, indent=2))
     if locality_1:
         locality = locality_1
     elif locality_2:

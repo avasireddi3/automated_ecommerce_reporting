@@ -65,4 +65,4 @@ max_lat = 13.200
 min_lat = 12.800
 min_long = 77.400
 max_long = 77.800
-grid_detail = 15
+grid_detail = 3

@@ -1,9 +1,10 @@
+import traceback
+
 import numpy as np
 import time
 import polars as pl
 import folium
 import asyncio
-from collections.abc import Callable
 from alive_progress import alive_bar
 from src.config import min_lat, min_long, max_lat, max_long, grid_detail, auto_bar
 from src.storeLocators.blinkit_locator import get_blinkit_store
@@ -51,7 +52,9 @@ def fill_locality(coords:np.ndarray)->np.ndarray:
             coord[4] = get_google_locality(coord[2],coord[3])
             time.sleep(0.01)
         except IndexError:
-            print(coord[2],coord[3])
+            print(coord)
+            traceback.print_exc()
+            coord[4] = "None"
     return coords
 
 def plot_map(coords:np.ndarray,icon:str,file_name:str)->None:
@@ -91,6 +94,16 @@ def main():
     df = get_locations_df(store_locators)
     coords = process_locations(df)
     coords = fill_locality(coords)
+    coords = coords.tolist()
+    schema = {
+        "store_id":pl.datatypes.String,
+        "platform":pl.datatypes.String,
+        "latitude":pl.datatypes.Float64,
+        "longitude":pl.datatypes.Float64,
+        "locality":pl.datatypes.String
+    }
+    df = pl.DataFrame(coords,schema=schema,orient="row")
+    df.write_csv("store_locations.csv")
     plot_map(coords,"info","test_map")
 
 
