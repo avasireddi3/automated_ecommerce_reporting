@@ -1,10 +1,8 @@
 import polars as pl
 import pandas as pd
 import xlsxwriter
-from config import uri, table_name, xlsx_file_name, colors_hex
+from src.config import uri, table_name, xlsx_file_name, colors_hex
 from google.cloud import bigquery
-import pyarrow as pa
-
 
 def write_db(data:pl.dataframe)->None:
     """write to database located at the uri in config.py"""

@@ -2,6 +2,7 @@ import json
 import urllib3
 import traceback
 from src.credentials import gmaps_api_key
+
 def get_locality(lat:float,long:float,headers:dict):
     querystring = {"latitude": str(lat), "longitude": str(long)}
     session = urllib3.PoolManager()

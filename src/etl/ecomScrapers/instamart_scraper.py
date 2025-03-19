@@ -7,10 +7,8 @@ import asyncio
 import datetime
 import logging
 from collections.abc import Iterator
-from selenium_driverless import webdriver
-from selenium_driverless.scripts.network_interceptor import NetworkInterceptor, InterceptedRequest
-from config import unknown_bar, auto_bar
-from utils import try_extract, Listing, queries, locations,get_auth
+from src.config import unknown_bar, auto_bar
+from src.utils import try_extract, Listing, queries,get_auth
 from alive_progress import alive_bar
 
 

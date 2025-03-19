@@ -1,7 +1,6 @@
-from etl.ecomScrapers import zepto_scraper, instamart_scraper, blinkit_scraper
-from utils import Listing
+from src.etl.ecomScrapers import zepto_scraper, instamart_scraper, blinkit_scraper
+from src.utils import Listing
 from google.cloud import bigquery
-import pandas as pd
 import polars as pl
 import csv
 import logging
