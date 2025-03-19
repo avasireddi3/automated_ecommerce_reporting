@@ -1,6 +1,6 @@
 import polars as pl
 import polars_ds as pds
-from src.config import similarity_threshold
+from config import similarity_threshold
 
 
 def filter_clean()->pl.dataframe:

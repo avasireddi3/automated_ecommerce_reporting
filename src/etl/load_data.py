@@ -1,7 +1,7 @@
 import polars as pl
 import pandas as pd
 import xlsxwriter
-from src.config import uri, table_name, xlsx_file_name, colors_hex
+from config import uri, table_name, xlsx_file_name, colors_hex
 from google.cloud import bigquery
 import pyarrow as pa
 
@@ -29,25 +29,28 @@ def split_tables_sheet(data:pl.dataframe)->pl.dataframe:
 def write_excel(data:pl.dataframe)->None:
     """write data to xlsx file"""
     row_count = {}
-    with xlsxwriter.Workbook(f"demo_files/{xlsx_file_name}.xlsx") as f:
+    with xlsxwriter.Workbook(f"demo_files/{xlsx_file_name}.xlsx",
+                             {'nan_inf_to_errors':True}) as f:
         for frame in split_tables_sheet(data):
+            print(frame)
             sheet = frame["platform"].min()
-            if sheet in row_count:
-                position = "A" + str(row_count[sheet])
-                row_count[sheet] += frame.shape[0] + 2
-            else:
-                position = "A1"
-                row_count[sheet] = frame.shape[0] + 3
+            # if sheet in row_count:
+            #     position = "A" + str(row_count[sheet])
+            #     row_count[sheet] += frame.shape[0] + 2
+            # else:
+            #     position = "A1"
+            #     row_count[sheet] = frame.shape[0] + 3
             header_format = {
                 "font_color" : colors_hex[sheet]["text"],
                 "bold":True,
                 "bg_color":colors_hex[sheet]["bg"]
             }
             frame.write_excel(f, sheet,
-                              position=position,
+                              position="A1",
                               autofit=True,
                               header_format=header_format,
-                              hide_gridlines=False)
+                              hide_gridlines=False,
+                              )
 
 def write_big_query(data:pl.dataframe)->None:
     client = bigquery.Client("turnkey-triumph-453704-e8")

@@ -3,7 +3,7 @@ from fpdf.fonts import FontFace
 import polars as pl
 from PIL import Image
 
-from src.config import (colors_rgb, report_title, title_font, title_font_size,
+from config import (colors_rgb, report_title, title_font, title_font_size,
                         report_margins, margin_border,
                         table_font, table_font_size,
                         pdf_name)

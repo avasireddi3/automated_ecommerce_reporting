@@ -1,2 +1,3 @@
-import src.utils,src.ecomScrapers,src.etl,src.reportGeneration,src.storeLocators
-import src.config, src.credentials
+import utils,etl,reportGeneration,storeLocators
+import config, credentials
+from etl import ecomScrapers

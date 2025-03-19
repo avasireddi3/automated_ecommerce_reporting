@@ -4,9 +4,9 @@ import traceback
 import asyncio
 from selenium_driverless import webdriver
 from selenium_driverless.scripts.network_interceptor import NetworkInterceptor, InterceptedRequest
-from src.utils.data_models import Location
-from src.utils.helper_functions import get_auth
-from src.storeLocators.find_locality import get_locality
+from utils.data_models import Location
+from utils.helper_functions import get_auth
+from storeLocators.find_locality import get_locality
 
 # async def on_request(data:InterceptedRequest)->None:
 #     """setting global variable auth with intercepted network request"""

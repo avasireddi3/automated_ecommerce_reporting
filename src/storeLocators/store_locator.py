@@ -7,12 +7,12 @@ import folium
 import asyncio
 import logging
 from alive_progress import alive_bar
-from src.config import min_lat, min_long, max_lat, max_long, grid_detail, auto_bar, unknown_bar
-from src.storeLocators.blinkit_locator import get_blinkit_store
-from src.storeLocators.find_locality import get_google_locality
-from src.utils.helper_functions import get_auth
-from src.storeLocators.instamart_locator import get_instamart_store
-from src.storeLocators.zepto_locator import get_zepto_store
+from config import min_lat, min_long, max_lat, max_long, grid_detail, auto_bar, unknown_bar
+from storeLocators.blinkit_locator import get_blinkit_store
+from storeLocators.find_locality import get_google_locality
+from utils.helper_functions import get_auth
+from storeLocators.instamart_locator import get_instamart_store
+from storeLocators.zepto_locator import get_zepto_store
 from google.cloud import bigquery
 
 logger = logging.getLogger(__name__)

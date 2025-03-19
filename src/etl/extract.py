@@ -1,5 +1,5 @@
-from src.ecomScrapers import zepto_scraper, instamart_scraper, blinkit_scraper
-from src.utils import Listing
+from etl.ecomScrapers import zepto_scraper, instamart_scraper, blinkit_scraper
+from utils import Listing
 from google.cloud import bigquery
 import pandas as pd
 import polars as pl
@@ -15,13 +15,16 @@ def get_locations():
     query = """
         SELECT *
         FROM turnkey-triumph-453704-e8.test_dataset_1.store_locations
+        LIMIT 1
     """
     query_job = client.query(query)
     results = query_job.result()
     df = results.to_dataframe()
     df = pl.from_pandas(df)
     dfs_split = df.partition_by(["platform"])
-    results = {}
+    results = {"zepto":[],
+               "instamart":[],
+               "blinkit":[]}
     for df in dfs_split:
         results[df["platform"].min()] = df.to_dicts()
     return results

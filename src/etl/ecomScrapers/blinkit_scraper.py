@@ -8,8 +8,8 @@ import datetime
 import logging
 from collections.abc import Iterator
 from alive_progress import alive_bar
-from src.utils import try_extract, Listing, queries, locations, parse_weight, get_auth
-from src.config import auto_bar,unknown_bar
+from utils import try_extract, Listing, queries, locations, parse_weight, get_auth
+from config import auto_bar,unknown_bar
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)

@@ -8,8 +8,8 @@ import logging
 from collections.abc import Iterator
 from alive_progress import alive_bar
 from urllib3 import BaseHTTPResponse
-from src.config import unknown_bar, auto_bar
-from src.utils import try_extract, Listing, queries, locations, get_auth
+from config import unknown_bar, auto_bar
+from utils import try_extract, Listing, queries, locations, get_auth
 
 
 logger = logging.getLogger(__name__)

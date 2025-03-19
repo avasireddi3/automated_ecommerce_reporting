@@ -2,9 +2,9 @@ import json
 import cloudscraper
 import asyncio
 import urllib
-from src.utils.data_models import Location
-from src.utils.helper_functions import get_auth
-from src.storeLocators.find_locality import get_locality
+from utils.data_models import Location
+from utils.helper_functions import get_auth
+from storeLocators.find_locality import get_locality
 
 def get_blinkit_store(lat:float,long:float,headers:dict)->dict[str,any]:
     scraper = cloudscraper.create_scraper()

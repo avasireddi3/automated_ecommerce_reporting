@@ -1,8 +1,8 @@
 import smtplib
 import mimetypes
 from email.message import EmailMessage
-from src.config import pdf_name, xlsx_file_name, msg_content,to
-from src.credentials import gmail_user,gmail_password
+from config import pdf_name, xlsx_file_name, msg_content,to
+from credentials import gmail_user,gmail_password
 
 EMAIL_ADDRESS = gmail_user
 EMAIL_PASSWORD = gmail_password

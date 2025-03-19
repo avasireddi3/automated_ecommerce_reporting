@@ -4,9 +4,9 @@ import urllib3
 import cloudscraper
 import traceback
 import asyncio
-from src.config import min_lat, min_long, max_lat, max_long, grid_detail, unknown_bar, auto_bar
-from src.utils.data_models import Location
-from src.utils.helper_functions import get_auth
+from config import min_lat, min_long, max_lat, max_long, grid_detail, unknown_bar, auto_bar
+from utils.data_models import Location
+from utils.helper_functions import get_auth
 
 def get_instamart_store(lat:float,long:float,headers:dict)->dict[str,any]:
     payload = {"data": {

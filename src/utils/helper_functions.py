@@ -1,7 +1,7 @@
 from selenium_driverless import webdriver
 from selenium_driverless.scripts.network_interceptor import NetworkInterceptor, InterceptedRequest
 from alive_progress import alive_bar
-from src.config import unknown_bar
+from config import unknown_bar
 
 
 def try_extract(obj:dict,field:str,default):
