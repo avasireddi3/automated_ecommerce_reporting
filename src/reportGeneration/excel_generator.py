@@ -1,6 +1,7 @@
 import xlsxwriter
 import polars as pl
 from src.config import xlsx_file_name, colors_hex
+from src.utils.validators import check_path
 
 def split_tables_sheet(data:pl.dataframe)->pl.dataframe:
     """split data into tables by platform for insertion into excel sheet"""
@@ -17,10 +18,11 @@ def split_tables_sheet(data:pl.dataframe)->pl.dataframe:
     for frame in dataframes:
         yield frame
 
-def write_excel(data:pl.dataframe)->None:
+def write_excel(data:pl.dataframe,report_path:str="report_files/")->None:
     """write data to xlsx file"""
     row_count = {}
-    with xlsxwriter.Workbook(f"demo_files/{xlsx_file_name}.xlsx",
+    check_path()
+    with xlsxwriter.Workbook(report_path+"{xlsx_file_name}.xlsx",
                              {'nan_inf_to_errors':True}) as f:
         for frame in split_tables_sheet(data):
             print(frame)

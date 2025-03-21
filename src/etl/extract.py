@@ -8,6 +8,8 @@ import polars as pl
 import csv
 import logging
 
+from src.utils.validators import check_path
+
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
@@ -33,9 +35,10 @@ def get_locations():
         results[df["platform"].min()] = df.to_dicts()
     return results
 
-def generate_csv(locations:dict,stage_path:str)->None:
-    """write results of scrapers into a csv file"""
-    with open('demo_files/test.csv','w',newline='') as csvfile:
+def extract_listings(stage_path:str="staging_data/stage.csv")->None:
+    locations = get_locations()
+    check_path(stage_path)
+    with open(stage_path, 'w', newline='') as csvfile:
         fieldnames = Listing.model_fields.keys()
         writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
         writer.writeheader()
@@ -48,10 +51,6 @@ def generate_csv(locations:dict,stage_path:str)->None:
         for set_listings in blinkit_scraper.scrape_blinkit(locations["blinkit"]):
             writer.writerows(set_listings)
         logger.info("Extracted blinkit")
-
-def extract_listings(stage_path:str="staging_data/stage.csv")->None:
-    locations = get_locations()
-    generate_csv(locations,stage_path)
 
 if __name__ == "__main__":
     print(os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
