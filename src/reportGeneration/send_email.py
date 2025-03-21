@@ -1,11 +1,14 @@
 import smtplib
 import mimetypes
+import os
 from email.message import EmailMessage
+from dotenv import load_dotenv
 from src.config import pdf_name, xlsx_file_name, msg_content,to
-from src.credentials import gmail_user,gmail_password
 
-EMAIL_ADDRESS = gmail_user
-EMAIL_PASSWORD = gmail_password
+load_dotenv("secrets.env")
+
+EMAIL_ADDRESS = os.getenv("GMAIL_ADDRESS")
+EMAIL_PASSWORD = os.getenv("GMAIL_PASSWORD")
 
 def send_mail()->None:
     """send automated email"""
@@ -33,3 +36,5 @@ def send_mail()->None:
         smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
         smtp.send_message(msg)
 
+if __name__=="__main__":
+    print(EMAIL_ADDRESS,EMAIL_PASSWORD)

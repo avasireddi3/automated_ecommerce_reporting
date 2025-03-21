@@ -1,6 +1,9 @@
+import os
+
 from src.etl.ecomScrapers import zepto_scraper, instamart_scraper, blinkit_scraper
 from src.utils import Listing
 from google.cloud import bigquery
+from dotenv import load_dotenv
 import polars as pl
 import csv
 import logging
@@ -8,13 +11,15 @@ import logging
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
+load_dotenv("secrets.env")
 
 def get_locations():
+    load_dotenv("secrets.env")
     client = bigquery.Client(project="turnkey-triumph-453704-e8")
     query = """
-        SELECT *
-        FROM turnkey-triumph-453704-e8.test_dataset_1.store_locations
-        LIMIT 1
+        SELECT * 
+        FROM `turnkey-triumph-453704-e8.test_dataset_1.store_locations` 
+        WHERE locality IN  ('Hebbal','Yelahanka','Indiranagar','Koramangala','Whitefield')
     """
     query_job = client.query(query)
     results = query_job.result()
@@ -47,3 +52,10 @@ def generate_csv(locations:dict)->None:
 def extract_listings()->None:
     locations = get_locations()
     generate_csv(locations)
+
+if __name__ == "__main__":
+    print(os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
+    locations = get_locations()
+    for platform in locations:
+        for store in locations[platform]:
+            print(store)

@@ -1,6 +1,5 @@
 import json
 import urllib3
-import traceback
 import asyncio
 from src.utils.data_models import Location
 from src.utils.helper_functions import get_auth

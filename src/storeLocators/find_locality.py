@@ -1,7 +1,11 @@
 import json
 import urllib3
 import traceback
-from src.credentials import gmaps_api_key
+import os
+from dotenv import load_dotenv
+
+load_dotenv("secrets.env")
+gmaps_api_key = os.getenv("GMAPS_API_KEY")
 
 def get_locality(lat:float,long:float,headers:dict):
     querystring = {"latitude": str(lat), "longitude": str(long)}
