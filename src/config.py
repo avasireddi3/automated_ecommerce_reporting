@@ -1,9 +1,14 @@
 #TERMINAL OUTPUT SETTINGS
 #see alive_progress documentation for more info
 #For progress bars
+from src.utils import locations
+
 auto_bar = "classic"
 #For loading bars
 unknown_bar="waves"
+
+#LOCATION SETTINGS
+locations = ['Hebbal','Yelahanka','Indiranagar','Koramangala','Whitefield']
 
 #DATABASE SETTINGS
 uri = "sqlite:////home/avasireddi3/projects/saroj_analytics/test.db"
@@ -35,8 +40,11 @@ colors_rgb = {
 similarity_threshold = 0.45
 
 #REPORT GENERATION
+#images to use for logo and border
+logo_image = "assests/logo_image.jpeg"
+border_image = "assets/border_image.jpeg"
 #report title
-report_title = "Vijay Ecommerce Pricing Report"
+report_title = "Ecommerce Pricing Report"
 #title font settings
 title_font = 'Helvetica'
 title_font_size = 18

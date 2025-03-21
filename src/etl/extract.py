@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 import polars as pl
 import csv
 import logging
-
+from src.config import locations
 from src.utils.validators import check_path
 
 logger = logging.getLogger(__name__)
@@ -17,13 +17,20 @@ load_dotenv("secrets.env")
 
 def get_locations():
     load_dotenv("secrets.env")
-    client = bigquery.Client(project="turnkey-triumph-453704-e8")
-    query = """
+    project_id = os.getenv("GOOGLE_PROJECT_ID")
+    client = bigquery.Client(project=project_id)
+    query = f"""
         SELECT * 
-        FROM `turnkey-triumph-453704-e8.test_dataset_1.store_locations` 
-        WHERE locality IN  ('Hebbal','Yelahanka','Indiranagar','Koramangala','Whitefield')
+        FROM {project_id}.test_dataset_1.store_locations
+        WHERE locality IN UNNEST(@locations)
     """
-    query_job = client.query(query)
+    job_config = bigquery.QueryJobConfig(
+        query_parameters=[
+            bigquery.ArrayQueryParameter("locations", "STRING", locations)  # Pass localities as an array
+        ]
+    )
+
+    query_job = client.query(query,job_config=job_config)
     results = query_job.result()
     df = results.to_dataframe()
     df = pl.from_pandas(df)
